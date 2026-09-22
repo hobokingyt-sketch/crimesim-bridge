@@ -1,108 +1,40 @@
 use crate::core::{
     error::{BridgeError, BridgeResult},
-    fsops::{is_generated, sha256_file},
     paths,
     project,
-    types::{AssetCatalogEntry, UpdateManifest},
+    types::UpdateManifest,
 };
 use chrono::Utc;
 use std::{
     fs,
-    io::{Read, Write},
+    io::Read,
     path::{Path, PathBuf},
 };
-use walkdir::WalkDir;
-use zip::{write::SimpleFileOptions, CompressionMethod, ZipArchive, ZipWriter};
+use zip::ZipArchive;
 
-const BINARY_EXTENSIONS: &[&str] = &[
-    "png", "jpg", "jpeg", "webp", "wav", "ogg", "mp3", "glb", "gltf", "fbx", "blend", "ttf", "otf",
-    "zip", "7z", "rar", "exe", "dll", "pck",
-];
-const LARGE_ASSET_LIMIT: u64 = 2 * 1024 * 1024;
-
+/// The default path remains available to the installed acceptance probe.
 pub fn create_chat_pack() -> BridgeResult<PathBuf> {
+    Ok(create_scoped_chat_pack(&crate::core::context::Request::default())?.path)
+}
+
+pub fn chat_context_options() -> BridgeResult<crate::core::context::Options> {
+    let _workspace_guard = crate::core::transaction::open_recovered()?;
+    let root = paths::current_project()?;
+    let meta = project::read_project(&root)?;
+    crate::core::context::options_at(&root, &meta)
+}
+
+pub fn create_scoped_chat_pack(request: &crate::core::context::Request) -> BridgeResult<crate::core::context::Pack> {
     let _workspace_guard = crate::core::transaction::open_recovered()?;
     paths::ensure_layout()?;
-    let project_root = paths::current_project()?;
-    let meta = project::read_project(&project_root)?;
-    let output_dir = paths::downloads().unwrap_or(paths::outgoing_root()?);
-    fs::create_dir_all(&output_dir)?;
-    let output = output_dir.join(format!("CrimeSim_Context_{:04}.zip", meta.revision));
-
-    let file = fs::File::create(&output)?;
-    let mut zip = ZipWriter::new(file);
-    let options = SimpleFileOptions::default().compression_method(CompressionMethod::Deflated);
-    let mut catalog = Vec::new();
-
-    for entry in WalkDir::new(&project_root).follow_links(false) {
-        let entry = entry?;
-        if !entry.file_type().is_file() {
-            continue;
-        }
-        let rel = entry
-            .path()
-            .strip_prefix(&project_root)
-            .map_err(|e| BridgeError::Invalid(e.to_string()))?;
-        if is_generated(rel) {
-            continue;
-        }
-
-        let metadata = entry.metadata().map_err(|e| BridgeError::Invalid(e.to_string()))?;
-        let hash = sha256_file(entry.path())?;
-        let ext = rel
-            .extension()
-            .and_then(|s| s.to_str())
-            .unwrap_or("")
-            .to_lowercase();
-        let is_binary = BINARY_EXTENSIONS.contains(&ext.as_str());
-        let include = !is_binary || metadata.len() <= LARGE_ASSET_LIMIT;
-        catalog.push(AssetCatalogEntry {
-            path: rel.to_string_lossy().replace('\\', "/"),
-            bytes: metadata.len(),
-            sha256: hash,
-            included: include,
-            reason: (!include).then(|| "large binary represented by catalog only".into()),
-        });
-
-        if include {
-            let zip_name = format!("source/{}", rel.to_string_lossy().replace('\\', "/"));
-            zip.start_file(zip_name, options)?;
-            let mut input = fs::File::open(entry.path())?;
-            std::io::copy(&mut input, &mut zip)?;
-        }
-    }
-
-    zip.start_file("asset_catalog.json", options)?;
-    zip.write_all(&serde_json::to_vec_pretty(&catalog)?)?;
-    let last_validation = paths::root()?.join(paths::LAST_VALIDATION);
-    if last_validation.exists() {
-        zip.start_file("bridge_context/last_validation.json", options)?;
-        zip.write_all(&fs::read(last_validation)?)?;
-    }
-    zip.start_file("bridge_context/bridge_state.json", options)?;
-    zip.write_all(&serde_json::to_vec_pretty(&serde_json::json!({
-        "bridge_version": env!("CARGO_PKG_VERSION"),
-        "source_revision": meta.revision,
-        "save_schema": meta.save_schema,
-        "generated_at": Utc::now().to_rfc3339()
-    }))?)?;
-    zip.start_file("context_manifest.json", options)?;
-    zip.write_all(
-        &serde_json::to_vec_pretty(&serde_json::json!({
-            "schema": 1,
-            "package_type": "context",
-            "project_id": meta.project_id,
-            "project_name": meta.project_name,
-            "engine": meta.engine,
-            "engine_version": meta.engine_version,
-            "revision": meta.revision,
-            "save_schema": meta.save_schema,
-            "created_at": Utc::now().to_rfc3339(),
-            "transport_note": "Single handoff archive containing a normal multi-file project. Large binaries may be catalog-only."
-        }))?,
-    )?;
-    zip.finish()?;
-    Ok(output)
+    let root = paths::current_project()?;
+    let meta = project::read_project(&root)?;
+    let output = paths::downloads().unwrap_or(paths::outgoing_root()?);
+    let report_path = paths::root()?.join(paths::LAST_VALIDATION);
+    let report = fs::metadata(&report_path).ok().filter(|m| m.len() <= 64 * 1024)
+        .and_then(|_| fs::read(report_path).ok())
+        .and_then(|bytes| serde_json::from_slice::<crate::core::types::ValidationReport>(&bytes).ok());
+    crate::core::context::export_at(&root, &meta, &output, request, report.as_ref())
 }
 
 pub fn read_update_manifest(zip_path: &Path) -> BridgeResult<UpdateManifest> {

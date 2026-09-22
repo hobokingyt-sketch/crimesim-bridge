@@ -1,10 +1,14 @@
 (() => {
   const invoke = window.__TAURI__?.core?.invoke;
   const $ = (id) => document.getElementById(id);
-  const buttons = [...document.querySelectorAll('button')];
+  const buttons = [...document.querySelectorAll('button, select, textarea')];
+  let contextReady = false;
+  let busy = false;
 
   function setBusy(value) {
+    busy = value;
     buttons.forEach((button) => { button.disabled = value; });
+    $('createPack').disabled = value || !contextReady;
   }
 
   function basename(path) {
@@ -64,30 +68,66 @@
       });
     }
     renderValidation(status.last_validation);
+    contextReady = false;
+    if (status.project_present && !needsRecovery) {
+      try {
+        const options = await invoke('chat_context_options');
+        const previous = $('contextArea').value;
+        $('contextArea').replaceChildren();
+        for (const area of options.modules) {
+          const option = document.createElement('option');
+          option.value = area.id;
+          option.textContent = area.title;
+          $('contextArea').appendChild(option);
+        }
+        if (options.modules.some((m) => m.id === previous)) $('contextArea').value = previous;
+        contextReady = options.modules.length > 0;
+        $('contextHint').textContent = options.memory_origin === 'read_only_legacy_routes'
+          ? 'Older project: temporary reading routes. Export will not rewrite its source.'
+          : 'Game memory and exact source hashes travel with the selected area.';
+      } catch (error) {
+        $('contextHint').textContent = 'Context unavailable: ' + String(error);
+      }
+    } else {
+      $('contextHint').textContent = needsRecovery ? 'Finish recovery before exporting.' : 'Initialize the project to prepare a handoff.';
+    }
+    setBusy(busy);
   }
 
-  async function run(command) {
+  async function run(command, args) {
     if (!invoke) return;
     setBusy(true);
     renderAction({ title: 'Working', detail: 'The Bridge is checking the project. Godot workers have enforced time limits.' });
     try {
-      const result = await invoke(command);
+      const result = await invoke(command, args);
       renderAction(result);
     } catch (error) {
       renderAction({ title: 'Action failed', detail: String(error) });
     } finally {
+      try { await refresh(); }
+      catch (error) { renderAction({ title: 'Status check failed', detail: String(error) }); }
       setBusy(false);
-      await refresh();
     }
   }
 
-  $('createPack').addEventListener('click', () => run('create_chat_pack'));
+  $('createPack').addEventListener('click', () => {
+    if (!contextReady || busy) return;
+    try {
+      const raw = $('contextRequests').value.trim();
+      const fileRequests = raw ? JSON.parse(raw).file_requests : [];
+      if (!Array.isArray(fileRequests)) throw new Error('Paste the file_requests object provided by chat.');
+      const request = { module_id: $('contextArea').value, task: $('contextTask').value.trim(), file_requests: fileRequests };
+      run('create_chat_pack', { request });
+    } catch (error) {
+      renderAction({ title: 'File request needs attention', detail: String(error) });
+    }
+  });
   $('applyUpdate').addEventListener('click', () => run('apply_latest_update_and_play'));
   $('playCurrent').addEventListener('click', () => run('play_current'));
   $('scanUpdate').addEventListener('click', () => run('scan_latest_update'));
   $('rollback').addEventListener('click', () => run('rollback'));
   $('bootstrap').addEventListener('click', () => run('initialize_pipeline'));
-  $('refreshStatus').addEventListener('click', refresh);
+  $('refreshStatus').addEventListener('click', () => refresh().catch((error) => renderAction({ title: 'Status check failed', detail: String(error) })));
   refresh().then(() => {
     if (!invoke) return;
     requestAnimationFrame(() => requestAnimationFrame(() => {

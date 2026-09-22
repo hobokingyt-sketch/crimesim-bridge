@@ -51,6 +51,13 @@
         "python -m unittest discover -s tools/delivery_tests -v"
       ],
       "platform": "Python 3.11+; fixture installer/provenance tests. Native acceptance is Windows CI."
+    },
+    "game-context": {
+      "commands": [
+        "cargo test --locked -p crimesim-bridge --lib core::context::tests",
+        "node --test tools/context-ui.test.cjs"
+      ],
+      "platform": "Windows + pinned Rust for production exporter tests; Node.js for mocked DOM/backend control tests. Installed acceptance is separate."
     }
   },
   "modules": [
@@ -89,7 +96,8 @@
       "id": "packages",
       "purpose": "Game context ZIPs, update manifests, payload reads, incoming and terminal archives.",
       "owns": [
-        "src-tauri/src/core/package.rs"
+        "src-tauri/src/core/package.rs",
+        "src-tauri/src/core/context/*"
       ],
       "card": "docs/modules/packages.md",
       "depends_on": [
@@ -98,7 +106,8 @@
       ],
       "checks": [
         "legacy-models",
-        "windows"
+        "windows",
+        "game-context"
       ]
     },
     {
@@ -195,7 +204,8 @@
         "tools/delivery.py",
         "tools/delivery_tests/*",
         "tools/test_installer.ps1",
-        "src-tauri/src/install_check.rs"
+        "src-tauri/src/install_check.rs",
+        "tools/context-ui.test.cjs"
       ],
       "card": "docs/modules/delivery.md",
       "depends_on": [
@@ -208,7 +218,8 @@
         "legacy-models",
         "windows",
         "workers",
-        "delivery"
+        "delivery",
+        "game-context"
       ]
     },
     {

@@ -26,16 +26,20 @@ async fn bootstrap_demo_project() -> Result<ActionResult, String> {
 }
 
 #[tauri::command]
-async fn create_chat_pack() -> Result<ActionResult, String> {
-    background(|| {
-    let path = package::create_chat_pack().map_err(user_error)?;
-    Ok(ActionResult {
-        ok: true,
-        title: "Chat Context Pack created".into(),
-        detail: "Upload this one ZIP to ChatGPT. It represents the normal multi-file project without flattening it.".into(),
-        path: Some(path.to_string_lossy().to_string()),
-    })
+async fn chat_context_options() -> Result<core::context::Options, String> {
+    background(|| package::chat_context_options().map_err(user_error)).await
+}
 
+#[tauri::command]
+async fn create_chat_pack(request: Option<core::context::Request>) -> Result<ActionResult, String> {
+    background(move || {
+        let pack = package::create_scoped_chat_pack(&request.unwrap_or_default()).map_err(user_error)?;
+        Ok(ActionResult {
+            ok: true,
+            title: "Game handoff created".into(),
+            detail: format!("{} complete source files included; {} eligible files indexed but omitted. Upload this one ZIP to the next chat. Source was not changed. Memory: {}.", pack.included, pack.omitted, pack.memory_origin),
+            path: Some(pack.path.to_string_lossy().to_string()),
+        })
     }).await
 }
 
@@ -124,6 +128,7 @@ pub fn run() {
             initialize_pipeline,
             bootstrap_demo_project,
             create_chat_pack,
+            chat_context_options,
             scan_latest_update,
             apply_latest_update,
             apply_latest_update_and_play,

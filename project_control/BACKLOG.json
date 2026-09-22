@@ -87,11 +87,11 @@
         "shell",
         "memory"
       ],
-      "status": "open",
+      "status": "implemented_pending_ci",
       "problem": "Wire task-scoped game memory into the desktop Chat Pack button.",
       "done_when": "Bootstrap a separate game identity; select task/module without file hunting; pack exact source hashes, selected source, dependency cards and explicit omissions; request missing assets instead of guessing.",
-      "evidence_path": "src-tauri/src/core/package.rs",
-      "evidence_note": "create_chat_pack currently walks the whole managed project"
+      "evidence_path": "src-tauri/src/core/context/tests.rs",
+      "evidence_note": "Task-scoped game handoff implementation, staged game-memory seed and desktop controls. Rust tests and installed current-head export verification must pass before acceptance. Legacy projects export with labeled read-only routes; no silent source migration."
     },
     {
       "id": "SAFE-2",
