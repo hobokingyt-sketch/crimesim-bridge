@@ -17,10 +17,29 @@ struct RuntimeFile {
     sha256: String,
 }
 
+fn worker_at(root: &Path) -> Option<std::path::PathBuf> {
+    let mut workers = fs::read_dir(root).ok()?
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.is_file()
+                && path.file_name()
+                    .and_then(|v| v.to_str())
+                    .map(|name| name.to_ascii_lowercase().ends_with("_console.exe"))
+                    .unwrap_or(false)
+        })
+        .collect::<Vec<_>>();
+    workers.sort();
+    workers.into_iter().next().or_else(|| {
+        let legacy = root.join("godot.exe");
+        legacy.is_file().then_some(legacy)
+    })
+}
+
 pub fn integrity_at(root: &Path) -> BridgeResult<(bool, String)> {
     let manifest_path = root.join("runtime_manifest.json");
-    if !root.join("godot.exe").exists() {
-        return Ok((false, "Godot executable is missing".into()));
+    if worker_at(root).is_none() {
+        return Ok((false, "Godot command-line worker is missing".into()));
     }
     if !manifest_path.exists() {
         return Ok((false, "Runtime integrity manifest is missing".into()));
@@ -122,7 +141,7 @@ pub fn install_bundled(app: &tauri::AppHandle) -> BridgeResult<()> {
 
     let resources = app.path().resource_dir().map_err(|e| BridgeError::Invalid(e.to_string()))?;
     let candidates = [resources.join("resources/godot"), resources.join("godot")];
-    let source = candidates.iter().find(|p| p.join("godot.exe").exists() && p.join("runtime_manifest.json").exists());
+    let source = candidates.iter().find(|p| p.join("runtime_manifest.json").exists() && worker_at(p).is_some());
     let Some(source) = source else {
         return Ok(()); // Source/dev build may intentionally omit the large runtime payload.
     };
