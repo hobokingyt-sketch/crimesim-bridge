@@ -1,6 +1,6 @@
 use crate::core::error::{BridgeError, BridgeResult};
 use directories::{ProjectDirs, UserDirs};
-use std::{env, path::{Component, Path, PathBuf}};
+use std::{env, fs, path::{Component, Path, PathBuf}};
 
 pub const PROJECT_META: &str = "project_control/bridge_project.json";
 pub const LAST_VALIDATION: &str = "state/last_validation.json";
@@ -26,7 +26,27 @@ pub fn history_root() -> BridgeResult<PathBuf> { Ok(root()?.join("history/source
 pub fn build_history_root() -> BridgeResult<PathBuf> { Ok(root()?.join("history/builds")) }
 pub fn builds_root() -> BridgeResult<PathBuf> { Ok(root()?.join("builds")) }
 pub fn current_build() -> BridgeResult<PathBuf> { Ok(builds_root()?.join("current")) }
-pub fn runtime_godot() -> BridgeResult<PathBuf> { Ok(root()?.join("runtime/godot/godot.exe")) }
+pub fn runtime_godot() -> BridgeResult<PathBuf> {
+    let runtime = runtime_root()?;
+    if runtime.is_dir() {
+        let mut workers = fs::read_dir(&runtime)?
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| {
+                path.is_file()
+                    && path.file_name()
+                        .and_then(|v| v.to_str())
+                        .map(|name| name.to_ascii_lowercase().ends_with("_console.exe"))
+                        .unwrap_or(false)
+            })
+            .collect::<Vec<_>>();
+        workers.sort();
+        if let Some(worker) = workers.into_iter().next() {
+            return Ok(worker);
+        }
+    }
+    Ok(runtime.join("godot.exe"))
+}
 pub fn runtime_root() -> BridgeResult<PathBuf> { Ok(root()?.join("runtime/godot")) }
 pub fn logs_root() -> BridgeResult<PathBuf> { Ok(root()?.join("logs")) }
 pub fn outgoing_root() -> BridgeResult<PathBuf> { Ok(root()?.join("outgoing")) }
