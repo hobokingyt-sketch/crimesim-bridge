@@ -115,6 +115,14 @@ jobs:
       - name: Compile-check Rust workspace
         run: cargo check --workspace --locked
 
+      - name: Verify scoped game handoffs before packaging
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          cargo test --locked -p crimesim-bridge --lib core::context::tests -- --nocapture
+          node --test tools/context-ui.test.cjs
+
       - name: Run real Godot end-to-end Bridge smoke
         shell: pwsh
         env:

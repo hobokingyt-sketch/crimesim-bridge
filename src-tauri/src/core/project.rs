@@ -113,6 +113,7 @@ func _init() -> void:
     ensure_export_preset(&root, &project.export_preset)?;
     fs::write(root.join("project_control/PROJECT.md"), "# Criminal Simulation\n\nBridge bootstrap. The map is the world; UI is the command OS.\n")?;
     fs::write(root.join("project_control/CURRENT_STATE.md"), "# Current State\n\nRevision 0. Bridge bootstrap only. No game systems implemented.\n")?;
+    crate::core::context::seed_new_game(root, &project)?;
     Ok(project)
 }
 

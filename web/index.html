@@ -27,9 +27,25 @@
     </section>
 
     <section class="primary-actions">
-      <button id="createPack" class="primary">Create Chat Pack</button>
       <button id="applyUpdate" class="primary">Apply Latest Update &amp; Play</button>
       <button id="playCurrent">Play Current</button>
+    </section>
+
+    <section class="panel handoff-panel" aria-labelledby="handoffTitle">
+      <div class="handoff-head">
+        <div><p class="eyebrow">NEXT CHAT</p><h2 id="handoffTitle">Game handoff</h2></div>
+        <button id="createPack" class="primary" disabled>Create Chat Pack</button>
+      </div>
+      <div class="handoff-fields">
+        <label>Game area<select id="contextArea"><option value="foundation">Game foundation</option></select></label>
+        <label>What are we working on?<textarea id="contextTask" rows="2" maxlength="4096" placeholder="For example: simplify the Hustles panel"></textarea></label>
+      </div>
+      <p id="contextHint" class="muted-copy" role="status">Checking the game workspace.</p>
+      <details><summary>Requested files from chat</summary>
+        <label class="request-label">Paste the request supplied by the developer. No file browsing required.
+          <textarea id="contextRequests" rows="3" placeholder='{"file_requests": []}' spellcheck="false"></textarea>
+        </label>
+      </details>
     </section>
 
     <section class="workspace">

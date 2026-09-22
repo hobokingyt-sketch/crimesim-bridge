@@ -56,7 +56,11 @@ fn probe(app: &tauri::AppHandle, controls_ready: bool) -> Result<Value, String> 
     fs::copy(&fixture, &incoming).map_err(|e| e.to_string())?;
     let applied = update::apply(&incoming).map_err(|e| e.to_string())?;
     if !applied.ok { return Err(applied.detail); }
-    let context = package::create_chat_pack().map_err(|e| e.to_string())?;
+    let request = crate::core::context::Request { module_id: "ui".into(), task: "Installed scoped game handoff acceptance".into(), ..Default::default() };
+    let pack = package::create_scoped_chat_pack(&request).map_err(|e| e.to_string())?;
+    let game_meta = crate::core::project::read_project(&paths::current_project().map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+    crate::core::context::verify_generated(&pack, &game_meta, "ui").map_err(|e| e.to_string())?;
+    let context = pack.path;
     let current = status::get().map_err(|e| e.to_string())?;
     if !current.pipeline_ready || current.source_revision != Some(1) || current.playable_revision != Some(1) {
         return Err("Installed pipeline source/build state did not converge at revision 1".into());
@@ -68,8 +72,9 @@ fn probe(app: &tauri::AppHandle, controls_ready: bool) -> Result<Value, String> 
         "bridge_version": env!("CARGO_PKG_VERSION"), "source_commit": commit,
         "executable": std::env::current_exe().map_err(|e| e.to_string())?, "resources": resources,
         "workspace": root, "context_pack": context, "save_canary": canary,
+        "context_scope": "ui", "context_payload_hashes_verified": true,
         "source_revision": 1, "playable_revision": 1,
-        "checks": ["native_frontend_ipc", "bundled_runtime", "initialize", "update", "exported_launch", "rollback", "reapply", "context_pack", "save_canary"]}))
+        "checks": ["native_frontend_ipc", "bundled_runtime", "initialize", "update", "exported_launch", "rollback", "reapply", "context_pack", "save_canary", "scoped_game_handoff"]}))
 }
 
 #[tauri::command]

@@ -64,3 +64,15 @@ button.danger { color:#e6aaaa; }
 }
 
 .validation-errors { margin-top:14px; padding:12px 14px; border:1px solid #5c3333; background:#2a1717; color:#e6aaaa; border-radius:8px; font-size:12px; line-height:1.5; }
+
+.handoff-panel { margin-bottom: 16px; }
+.handoff-head { display:flex; align-items:center; justify-content:space-between; gap:24px; }
+.handoff-fields { display:grid; grid-template-columns:220px minmax(0,1fr); gap:16px; margin-top:12px; }
+.handoff-panel label { display:grid; gap:7px; color:#c2cbd5; font-size:13px; }
+.handoff-panel select,.handoff-panel textarea { font:inherit; color:#eef1f4; background:var(--surface-2); border:1px solid var(--line); border-radius:6px; padding:10px; width:100%; min-width:0; }
+.handoff-panel textarea { resize:vertical; }
+.handoff-panel :focus-visible { outline:2px solid #aebfd2; outline-offset:3px; }
+.handoff-panel .muted-copy { font-size:13px; margin:12px 0; }
+.handoff-panel summary { cursor:pointer; color:var(--muted); font-size:13px; }
+.request-label { margin-top:12px; }
+@media (max-width:900px) { .handoff-fields { grid-template-columns:1fr; } }
