@@ -69,6 +69,7 @@
   async function run(command) {
     if (!invoke) return;
     setBusy(true);
+    renderAction({ title: 'Working', detail: 'The Bridge is checking the project. Godot workers have enforced time limits.' });
     try {
       const result = await invoke(command);
       renderAction(result);

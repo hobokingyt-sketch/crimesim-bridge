@@ -1,10 +1,10 @@
 use crate::core::{
     error::{BridgeError, BridgeResult},
-    paths, project, runtime,
+    paths, project, runtime, worker,
     types::{BridgeProject, ValidationReport, ValidationStep},
 };
 use chrono::Utc;
-use std::{fs, path::{Path, PathBuf}, process::Command};
+use std::{fs, path::{Path, PathBuf}};
 
 fn summarize_errors(text: &str) -> Vec<String> {
     let mut out = Vec::new();
@@ -21,42 +21,26 @@ fn summarize_errors(text: &str) -> Vec<String> {
     out
 }
 
-fn write_log(log_name: &str, text: &str) -> BridgeResult<()> {
-    fs::create_dir_all(paths::logs_root()?)?;
-    fs::write(paths::logs_root()?.join(log_name), text)?;
-    Ok(())
+fn worker_text(outcome: bridge_worker::Outcome) -> (bool, String) {
+    // A fatal Godot marker must not disappear merely because the middle of a log was omitted.
+    let fatal = outcome.stdout.error_marker_seen || outcome.stderr.error_marker_seen;
+    let ok = outcome.success() && !fatal;
+    let headline = if ok { "Worker passed".to_string() } else {
+        format!("ERROR: Worker failed: {} Fatal Godot marker observed={fatal}.", outcome.summary())
+    };
+    let text = format!("{headline}\n{}", outcome.log());
+    (ok, text)
 }
-
-fn run_godot(godot: &Path, project: &Path, args: &[&str], log_name: &str) -> BridgeResult<(bool, String)> {
-    let output = Command::new(godot)
-        .arg("--headless")
-        .arg("--path")
-        .arg(project)
-        .args(args)
-        .output()?;
-    let mut text = String::from_utf8_lossy(&output.stdout).to_string();
-    if !output.stderr.is_empty() {
-        text.push_str("\n--- STDERR ---\n");
-        text.push_str(&String::from_utf8_lossy(&output.stderr));
-    }
-    write_log(log_name, &text)?;
-    Ok((output.status.success(), text))
+fn run_godot(godot: &Path, project: &Path, args: &[&str], log_name: &str, phase: worker::Phase) -> BridgeResult<(bool, String)> {
+    let project_str = project.to_str().ok_or_else(|| BridgeError::Invalid("Project path is not UTF-8".into()))?;
+    let mut all_args = vec!["--headless", "--path", project_str];
+    all_args.extend_from_slice(args);
+    Ok(worker_text(worker::run(phase, godot, project, &all_args, log_name)?))
 }
-
 fn run_exported_smoke(exe: &Path, log_name: &str) -> BridgeResult<(bool, String)> {
-    let output = Command::new(exe)
-        .arg("--headless")
-        .arg("--quit-after")
-        .arg("5")
-        .arg("--no-header")
-        .output()?;
-    let mut text = String::from_utf8_lossy(&output.stdout).to_string();
-    if !output.stderr.is_empty() {
-        text.push_str("\n--- STDERR ---\n");
-        text.push_str(&String::from_utf8_lossy(&output.stderr));
-    }
-    write_log(log_name, &text)?;
-    Ok((output.status.success(), text))
+    let cwd = exe.parent().ok_or_else(|| BridgeError::Invalid("Export path has no parent".into()))?;
+    Ok(worker_text(worker::run(worker::Phase::Smoke, exe, cwd,
+        &["--headless", "--quit-after", "5", "--no-header"], log_name)?))
 }
 
 pub fn validate(project_root: &Path, meta: &BridgeProject) -> BridgeResult<(ValidationReport, Option<PathBuf>)> {
@@ -105,16 +89,16 @@ pub fn validate(project_root: &Path, meta: &BridgeProject) -> BridgeResult<(Vali
     }
 
     let godot = paths::runtime_godot()?;
-    let (ok, text) = run_godot(&godot, project_root, &["--import"], "godot-import.log")?;
+    let (ok, text) = run_godot(&godot, project_root, &["--import"], "godot-import.log", worker::Phase::Import)?;
     if !ok { errors.extend(summarize_errors(&text)); }
-    steps.push(ValidationStep { name: "Godot import".into(), status: if ok { "passed" } else { "failed" }.into(), detail: "Headless resource import".into() });
+    steps.push(ValidationStep { name: "Godot import".into(), status: if ok { "passed" } else { "failed" }.into(), detail: if ok { "Headless resource import".into() } else { text.lines().take(2).collect::<Vec<_>>().join(" | ") } });
     if !ok { return Ok((report(meta.revision, steps, errors), None)); }
 
     let smoke_path = project_root.join("tests/bridge_smoke.gd");
     if smoke_path.exists() {
-        let (ok, text) = run_godot(&godot, project_root, &["--script", "res://tests/bridge_smoke.gd"], "godot-smoke.log")?;
+        let (ok, text) = run_godot(&godot, project_root, &["--script", "res://tests/bridge_smoke.gd"], "godot-smoke.log", worker::Phase::Harness)?;
         if !ok { errors.extend(summarize_errors(&text)); }
-        steps.push(ValidationStep { name: "Project smoke test".into(), status: if ok { "passed" } else { "failed" }.into(), detail: "Project-owned headless smoke harness".into() });
+        steps.push(ValidationStep { name: "Project smoke test".into(), status: if ok { "passed" } else { "failed" }.into(), detail: if ok { "Project-owned headless smoke harness".into() } else { text.lines().take(2).collect::<Vec<_>>().join(" | ") } });
         if !ok { return Ok((report(meta.revision, steps, errors), None)); }
     } else {
         steps.push(ValidationStep { name: "Project smoke test".into(), status: "skipped".into(), detail: "No tests/bridge_smoke.gd yet".into() });
@@ -125,7 +109,7 @@ pub fn validate(project_root: &Path, meta: &BridgeProject) -> BridgeResult<(Vali
     fs::create_dir_all(&candidate)?;
     let exe = candidate.join("CrimeSim.exe");
     let exe_str = exe.to_str().ok_or_else(|| BridgeError::Invalid("Build path is not valid UTF-8".into()))?;
-    let (ok, text) = run_godot(&godot, project_root, &["--export-debug", &meta.export_preset, exe_str], "godot-export.log")?;
+    let (ok, text) = run_godot(&godot, project_root, &["--export-debug", &meta.export_preset, exe_str], "godot-export.log", worker::Phase::Export)?;
     if !ok { errors.extend(summarize_errors(&text)); }
     let export_ok = ok && exe.is_file() && fs::metadata(&exe).map(|m| m.len() > 64 * 1024).unwrap_or(false);
     steps.push(ValidationStep {

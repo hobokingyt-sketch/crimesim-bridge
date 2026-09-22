@@ -1,16 +1,18 @@
 //! Godot adapter for the shared, independently tested transaction coordinator.
-use crate::core::{error::{BridgeError, BridgeResult}, godot, paths, types::BridgeProject, update};
+use crate::core::{error::{BridgeError, BridgeResult}, godot, paths, types::BridgeProject, update, worker};
 use bridge_safety::{Kind, Recovery, Workspace};
 use std::path::Path;
 
 pub fn open_recovered() -> BridgeResult<Workspace> {
     let ws = Workspace::open(&paths::root()?)?;
+    worker::ensure_quiescent()?;
     ws.recover().map_err(|e| BridgeError::Invalid(format!("Recovery required; operations blocked: {e}")))?;
     Ok(ws)
 }
 
 pub fn recover_incomplete() -> BridgeResult<Option<String>> {
     let ws = Workspace::open(&paths::root()?)?;
+    worker::ensure_quiescent()?;
     match ws.recover()? {
         Recovery::Clean => Ok(None),
         outcome => Ok(Some(format!("Recovery completed: {outcome:?}"))),
@@ -37,13 +39,17 @@ where F: FnOnce(&Path, Option<&Path>) -> BridgeResult<()> {
     })();
     match result {
         Ok(()) => Ok(()),
-        Err(original) => match ws.recover() {
+        Err(original) => {
+            // Never restore/delete staging while an unconfirmed worker can still write into it.
+            worker::ensure_quiescent().map_err(|e| BridgeError::Invalid(format!("RECOVERY REQUIRED. {original}. {e}")))?;
+            match ws.recover() {
             // A commit is irrevocable. Retry its cleanup, never quarantine it as a rejected update.
             Ok(Recovery::Finalized) => Ok(()),
             Ok(_) => Err(BridgeError::Invalid(format!("Operation rejected; prior source/build retained. {original}"))),
             Err(recovery) => Err(BridgeError::Invalid(format!(
                 "RECOVERY REQUIRED. {original}. Recovery failed: {recovery}. Further operations are blocked; retained files were not discarded."
             ))),
+        }
         },
     }
 }

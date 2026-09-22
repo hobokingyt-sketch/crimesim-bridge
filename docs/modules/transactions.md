@@ -11,6 +11,9 @@ Read actual source before changing behavior; this card is a map, not an implemen
 ## Contract
 The Godot adapter invokes the shared bridge-safety crate for all source/build promotion. Its schema-2 journal is the commit record. Before-images are transaction-specific. No promotion after failed validation; any recovery failure blocks later operations.
 
+## Worker boundary
+Before opening or recovering source/build state, confirm the persistent worker guard is quiescent. A timeout with confirmed cleanup recovers the prior pair; unconfirmed cleanup blocks recovery and retains staging.
+
 ## Known limitation
 Process-death tests cover filesystem transitions, not physical power loss. Unknown/legacy journals are deliberately preserved and block. Save-schema transitions remain SAFE-4.
 

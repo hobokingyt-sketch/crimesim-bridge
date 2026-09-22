@@ -11,6 +11,9 @@ Read actual source before changing behavior; this card is a map, not an implemen
 ## Contract
 Fast recovery CI runs production-library process-death tests separately from Windows Godot E2E and installer packaging. PR Windows builds validate adapters and E2E without publishing an installer.
 
+## Worker boundary
+Worker Watchdog runs the production supervisor against real fixture processes on Windows and Linux. Windows E2E remains a separate exact-head check. Provisioning no longer invokes Godot outside the watchdog; installer output/toolchain work remains BUILD-1.
+
 ## Known limitation
 Installer output-path, clean-install and locked-toolchain work remain BUILD-1. Cargo.lock is not added by this pass.
 

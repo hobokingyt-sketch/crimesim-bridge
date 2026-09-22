@@ -1,46 +1,36 @@
 {
   "schema": 1,
   "checkpoint": "2026-09-22",
-  "task_id": "SAFE-1",
-  "summary": "Project Armor II shared coordinator and recovery matrices pass hosted tests. Final adapter quarantine regression check and full recovery-error UI refinement await latest-head CI.",
-  "audit_base_commit": "6912c39a66566b4599db25c8327e4bed64818cac",
+  "task_id": "SAFE-2",
+  "summary": "Project Armor III adds an external Godot worker watchdog and bounded output. Armor II has passed its final checks and is merged. New Rust worker behavior and integrated E2E await current-head CI.",
+  "audit_base_commit": "6cbf251e3a7029cff99b3403da4cde541168bbd7",
   "observations": [
     {
-      "commit": "982fe29f2a9afbbc304d9cc38ef3d978a9433048",
-      "run_id": 35695720943,
+      "commit": "ef038a893297dfb06b5ba0162da7f5fe28fd363f",
+      "run_id": 35696987625,
       "result": "passed",
       "passed": [
-        "Production coordinator forced process-death and repeated recovery tests on Linux and Windows"
+        "Armor II Windows compile and expanded real Godot E2E",
+        "Armor II recovery and memory workflows also passed"
       ],
       "not_yet_verified": [
-        "latest adapter quarantine assertion and UI refinement"
+        "New SAFE-2 worker implementation",
+        "installer delivery",
+        "installed desktop UX"
       ],
-      "note": "Same production coordinator is linked into the app; test executables use fixture build files."
-    },
-    {
-      "commit": "982fe29f2a9afbbc304d9cc38ef3d978a9433048",
-      "run_id": 35695720899,
-      "result": "required_steps_passed",
-      "passed": [
-        "Windows full workspace compile",
-        "Real Godot initialize/update/launch/rollback/reapply/context export"
-      ],
-      "not_yet_verified": [
-        "installer release",
-        "latest-head expanded preflight-rejection assertion"
-      ],
-      "note": "Installer deliberately not produced by a PR validation run."
+      "note": "Armor II merged via PR #2 as 6cbf251. New worker tests must pass before SAFE-2 acceptance."
     }
   ],
   "next_task_ids": [
-    "SAFE-2",
     "BUILD-1",
-    "PACK-1"
+    "PACK-1",
+    "SAFE-3"
   ],
   "limits": [
-    "New coordinator is not a sandbox or a hard-power-loss guarantee.",
-    "Unknown, corrupt or pending legacy schema-1 journals block writes and preserve files; no guessed migration.",
-    "Fixture process tests do not establish Godot rendering, installed desktop UX, save migration or protection from arbitrary project code."
+    "No sandbox, disk power-loss certification or protection against deliberately escaped hostile processes.",
+    "Windows watchdog covers engine version/import/tests/export/smoke only. Normal gameplay remains untimed.",
+    "Linux process groups support tests and normal deadlines, not recovery of a persisted Windows job.",
+    "Cancellation is a tested worker API, not a desktop Cancel button. No installer delivered by this pass."
   ],
-  "handoff": "Fetch HEAD and PR #2 status first. Finish latest-head checks before merging SAFE-1; previous passed coordinator/E2E evidence is scoped above. Module route: transactions then delivery. No gameplay added."
+  "handoff": "Inspect SAFE-2 branch/PR and current-head Worker Watchdog, Recovery Safety, Project Memory and Windows compile/Godot E2E results. Do not repeat implementation or merge based on prior-head results. Read engine module first."
 }

@@ -38,11 +38,21 @@
         "foundation",
         "shell"
       ],
-      "status": "implemented_pending_ci",
+      "status": "verified",
       "problem": "Unify update, initialization and rollback under recoverable promotion.",
       "done_when": "Crash-inject every promotion phase; restart repeatedly; source/build either old or new together; recovery failures block mutations and are visible.",
       "evidence_path": "crates/bridge-safety/tests/recovery.rs",
-      "evidence_note": "Production coordinator matrix passed Linux/Windows in run 35695720943; Windows compile/Godot E2E passed at 982fe29. Latest adapter rejection assertion and error UI refinement await latest-head CI; do not mark the entire pass verified yet."
+      "evidence_note": "Accepted and merged as 6cbf251e3a7029cff99b3403da4cde541168bbd7. Head ef038a8 passed Recovery Safety 35696987602, Project Memory 35696987608 and Windows compile + expanded real Godot E2E 35696987625. Installer deliberately skipped.",
+      "verification": {
+        "commit": "ef038a893297dfb06b5ba0162da7f5fe28fd363f",
+        "runs": [
+          35696987602,
+          35696987608,
+          35696987625
+        ],
+        "result": "passed",
+        "scope": "Recovery matrices, repository memory and Windows real Godot adapters; not installer or power-loss certification."
+      }
     },
     {
       "id": "BUILD-1",
@@ -76,13 +86,15 @@
       "priority": "P0",
       "modules": [
         "engine",
-        "foundation"
+        "transactions",
+        "shell",
+        "delivery"
       ],
-      "status": "open",
-      "problem": "Bound worker execution and serialize workspace writers.",
-      "done_when": "Parent-enforced timeouts terminate worker trees; capture bounded logs; no overlapping initialize/apply/rollback/context snapshot; simulate crash and lock contention.",
-      "evidence_path": "src-tauri/src/core/godot.rs",
-      "evidence_note": "run_godot; run_exported_smoke use Command::output; SAFE-1 now locks initialize/apply/rollback/context/launch requests; parent-enforced worker-tree deadlines still open."
+      "status": "implemented_pending_ci",
+      "problem": "Bound short-lived Godot worker execution, output and descendant lifetime.",
+      "done_when": "Silent hangs, output floods, exited launchers with live children, cancellation and supervisor death stop owned Windows worker trees; no promotion on timeout; retained output bounded; all short-lived Godot calls use one gateway; real Windows Godot E2E passes.",
+      "evidence_path": "crates/bridge-worker/tests/watchdog.rs",
+      "evidence_note": "Production watchdog crate and desktop gateway implemented. Windows uses atomically attached kill-on-close jobs, bounded nonblocking capture and persistent quiescence guard. Rust behavior and latest Windows Godot E2E await hosted tests. Linux process groups support normal tests, not Windows parent-death guarantees."
     },
     {
       "id": "SAFE-3",

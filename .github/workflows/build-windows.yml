@@ -91,9 +91,7 @@ jobs:
             ConvertTo-Json -Depth 5 |
             Set-Content -Path (Join-Path $runtime "runtime_manifest.json") -Encoding UTF8
 
-          $reported = & (Join-Path $runtime $godotConsole.Name) --version
-          Write-Host "Bundled Godot reports: $reported"
-          if (-not ($reported -like "${version}*")) { throw "Downloaded Godot version mismatch: $reported" }
+          Write-Host "Runtime prepared. Executable version is checked by the bounded Bridge worker during E2E."
 
       - name: Validate repository models
         shell: pwsh
@@ -104,6 +102,7 @@ jobs:
           python tools/test_runtime_manifest_model.py
           python tools/test_pipeline_contract.py
           node --check web/app.js
+          python tools/test_worker_wiring.py
 
       - name: Compile-check Rust workspace
         run: cargo check --workspace

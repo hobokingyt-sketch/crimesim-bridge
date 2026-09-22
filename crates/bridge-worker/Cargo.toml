@@ -1,0 +1,31 @@
+[package]
+name = "bridge-worker"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.89"
+publish = false
+autotests = false
+
+[features]
+default = []
+fixture-processes = []
+
+[[bin]]
+name = "worker_fixture"
+path = "tests/fixture.rs"
+required-features = ["fixture-processes"]
+
+[[test]]
+name = "watchdog"
+path = "tests/watchdog.rs"
+required-features = ["fixture-processes"]
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_Storage_FileSystem", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_System_Pipes", "Win32_System_IO"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
+
+[dev-dependencies]
+bridge-safety = { path = "../bridge-safety" }
+serde_json = "1"

@@ -1,0 +1,30 @@
+name: Worker Watchdog
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, "armor/**"]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: workers-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  workers:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+      - name: Exercise production worker watchdog and process trees
+        run: cargo test -p bridge-worker --features fixture-processes -- --nocapture
+      - name: Check worker gateway and recovery ordering
+        run: python tools/test_worker_wiring.py

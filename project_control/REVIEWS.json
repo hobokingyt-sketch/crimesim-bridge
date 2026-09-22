@@ -2,15 +2,15 @@
   "schema": 1,
   "modules": {
     "delivery": {
-      "source_sha256": "ce52bd3dba51eb1df841f4ab85ad2aa444551c25b39b7a554928085b48769421",
-      "reviewed_at": "2026-09-22T06:48:12.038552+00:00",
-      "note": "SAFE-1: added real adapter preflight rejection assertion; recovery matrix passed; expanded Windows E2E pending.",
+      "source_sha256": "12e0743585a89170e970c7750b3c46dc9f413734bcb45bc08afca2f3ec104830",
+      "reviewed_at": "2026-09-22T07:25:23.141130+00:00",
+      "note": "SAFE-2 source review: independent fixture-process tests and no unbounded provisioning version call; new hosted tests pending.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "engine": {
-      "source_sha256": "6632ae162cf7e659a05fc598332587f51987a0f7b2714cb501f8cf0e0d65c633",
-      "reviewed_at": "2026-09-22T06:24:22.429196+00:00",
-      "note": "SAFE-1: reviewed coordinator and affected adapters; Rust behavior awaits hosted CI.",
+      "source_sha256": "40627cd66a82e9b8d850acdc6aa9baf656f12c8202dcb1f74e4d14a5ed32fdb6",
+      "reviewed_at": "2026-09-22T07:25:21.067305+00:00",
+      "note": "SAFE-2 source review: one worker gateway, deadline/cleanup bounds, Windows atomic Job assignment; executed Rust tests pending hosted CI.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "foundation": {
@@ -38,15 +38,15 @@
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "shell": {
-      "source_sha256": "bfbd23844d3add7d216477211538d74781fda498c10e316c21811933f246fbfe",
-      "reviewed_at": "2026-09-22T06:43:25.638329+00:00",
-      "note": "SAFE-1: recovery errors shown in full activity area; UI states checked with mocked bridge responses; installed UX remains pending.",
+      "source_sha256": "980a993e38d6873e85a653dd315ef0a70de00f9f30c4ebd441336f4b8c1b2849",
+      "reviewed_at": "2026-09-22T07:25:22.490346+00:00",
+      "note": "SAFE-2 source review: async command wrappers and pending-worker status; native desktop behavior pending hosted testing.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "transactions": {
-      "source_sha256": "32a7ea92a047f51ff71fef9001a399fe76a401a6902c5a39be8b0b9e15c563b3",
-      "reviewed_at": "2026-09-22T06:48:11.387957+00:00",
-      "note": "SAFE-1: production recovery tests passed on both CI platforms; reviewed preflight quarantine preservation; expanded adapter E2E pending.",
+      "source_sha256": "d604c77509f836fd555ab16733e98783bb0e644700305a02c9b874d4b51f9de5",
+      "reviewed_at": "2026-09-22T07:25:21.824866+00:00",
+      "note": "SAFE-2 source review: worker quiescence before normal recovery and failure recovery; prior SAFE-1 current-head CI passed.",
       "meaning": "Developer review declaration; not automated semantic proof."
     }
   }

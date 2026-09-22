@@ -11,6 +11,9 @@ Read actual source before changing behavior; this card is a map, not an implemen
 ## Contract
 Initialization and repair assemble candidates in staging and enter the same coordinator as update/rollback. Pending journals and recovery errors suppress READY and block mutation, context export and launch requests.
 
+## Worker boundary
+Long filesystem/process commands run on the Tauri blocking worker pool, not the webview event loop. A pending worker guard suppresses READY and exposes cleanup-required status. No desktop Cancel button is implemented.
+
 ## Known limitation
 Current build health versus latest attempted validation remains HEALTH-1. Desktop UX still needs installed testing; parent-enforced worker deadlines remain SAFE-2.
 
