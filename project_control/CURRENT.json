@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "checkpoint": "2026-09-22",
-  "task_id": "ARMOR-1",
-  "summary": "Repository memory, scoped handoffs, ownership checks and an evidence-based safety backlog. No game features or Rust transaction changes in this pass.",
-  "audit_base_commit": "56589ae4858da3809de2ef637fda4b72d17ebdc4",
+  "task_id": "SAFE-1",
+  "summary": "Project Armor II candidate: common journaled source/build coordinator, guarded init/update/rollback, operation-specific before-images, visible recovery errors and forced process-death tests. Hosted validation pending.",
+  "audit_base_commit": "6912c39a66566b4599db25c8327e4bed64818cac",
   "observations": [
     {
       "commit": "56589ae4858da3809de2ef637fda4b72d17ebdc4",
@@ -11,42 +11,24 @@
       "result": "cancelled_after_partial_success",
       "passed": [
         "Windows compile check",
-        "real Godot update/rollback/reapply E2E"
+        "pre-Armor-II real Godot E2E"
       ],
       "not_yet_verified": [
         "installer delivery",
-        "installed desktop UX",
-        "crash injection across every mutation phase"
+        "Armor II Rust tests and real Godot E2E"
       ],
-      "note": "Job completed cancelled at 2026-09-22T05:41:32Z during NSIS build. Compile and real E2E passed; installer verification/upload skipped. Recheck Actions for newer runs."
+      "note": "Earlier passing runs do not validate the new coordinator."
     }
   ],
   "next_task_ids": [
-    "SAFE-1",
+    "SAFE-2",
     "BUILD-1",
     "PACK-1"
   ],
   "limits": [
-    "Memory checks do not prove runtime safety or correct game design.",
-    "Focused Bridge source packs are developer tooling; the desktop Create Chat Pack still exports its managed game workspace.",
-    "No production game simulation is implemented here."
+    "New coordinator is not a sandbox or a hard-power-loss guarantee.",
+    "Unknown, corrupt or pending legacy schema-1 journals block writes and preserve files; no guessed migration.",
+    "Fixture process tests do not establish Godot rendering, installed desktop UX, save migration or protection from arbitrary project code."
   ],
-  "handoff": "Read AGENTS.md and the module for the next task. Do not restart the project or use an old source ZIP as the current repository.",
-  "local_verification": {
-    "result": "passed",
-    "tests": 31,
-    "command": "python -m unittest discover -s tools/memory/tests -v",
-    "platform": "Linux / Python 3.13",
-    "scope": "Repository memory and handoff tooling, not Windows runtime safety"
-  },
-  "hosted_verification": {
-    "commit": "a0ab0aed5aec404cdaca9311092d29db5d82f84c",
-    "run_id": 35693072715,
-    "result": "passed",
-    "platforms": [
-      "ubuntu-latest",
-      "windows-latest"
-    ],
-    "scope": "Memory structure, behavior tests, frontend syntax; not installer delivery or Rust crash safety"
-  }
+  "handoff": "Fetch HEAD and PR status first. SAFE-1 stays pending until actual Rust tests, adapter compile and Godot E2E pass. Read docs/modules/transactions.md and docs/RECOVERY.md. No new gameplay in this pass."
 }

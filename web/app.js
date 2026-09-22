@@ -51,9 +51,9 @@
     $('godotStatus').textContent = status.godot_runtime_present ? `Ready · ${status.engine_version || ''}` : 'Runtime missing';
     $('runtimeIntegrity').textContent = status.godot_runtime_integrity || 'Unknown';
     $('latestUpdate').textContent = status.latest_update ? basename(status.latest_update) : 'None found';
-    $('recoveryStatus').textContent = status.last_recovery || 'None';
+    $('recoveryStatus').textContent = status.recovery_error || (status.recovery_required ? 'Recovery pending; project controls blocked' : status.last_recovery || 'None');
     const healthy = Boolean(status.pipeline_ready);
-    $('healthPill').textContent = healthy ? 'READY' : status.project_present ? 'SETUP' : 'EMPTY';
+    $('healthPill').textContent = status.recovery_required || status.recovery_error ? 'RECOVERY REQUIRED' : healthy ? 'READY' : status.project_present ? 'SETUP' : 'EMPTY';
     $('healthPill').className = `pill ${healthy ? 'good' : 'muted'}`;
     renderValidation(status.last_validation);
   }

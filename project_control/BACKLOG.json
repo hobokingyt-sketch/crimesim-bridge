@@ -38,11 +38,11 @@
         "foundation",
         "shell"
       ],
-      "status": "open",
+      "status": "implemented_pending_ci",
       "problem": "Unify update, initialization and rollback under recoverable promotion.",
       "done_when": "Crash-inject every promotion phase; restart repeatedly; source/build either old or new together; recovery failures block mutations and are visible.",
-      "evidence_path": "src-tauri/src/core/update.rs",
-      "evidence_note": "rollback; apply; promote_source; promote_build"
+      "evidence_path": "crates/bridge-safety/tests/recovery.rs",
+      "evidence_note": "Shared coordinator, 17 promotion boundaries across initialize/update/rollback/repair plus recovery interruption matrix. Rust execution pending hosted CI; do not mark passed from Python checks."
     },
     {
       "id": "BUILD-1",
@@ -82,7 +82,7 @@
       "problem": "Bound worker execution and serialize workspace writers.",
       "done_when": "Parent-enforced timeouts terminate worker trees; capture bounded logs; no overlapping initialize/apply/rollback/context snapshot; simulate crash and lock contention.",
       "evidence_path": "src-tauri/src/core/godot.rs",
-      "evidence_note": "run_godot; run_exported_smoke use Command::output"
+      "evidence_note": "run_godot; run_exported_smoke use Command::output; SAFE-1 now locks initialize/apply/rollback/context/launch requests; parent-enforced worker-tree deadlines still open."
     },
     {
       "id": "SAFE-3",
@@ -108,7 +108,7 @@
       "problem": "Use immutable revision identities and safe save-schema transitions.",
       "done_when": "After rollback, divergent reapply cannot reuse stale source/build snapshots. Never overwrite user saves; old executable cannot silently load incompatible new saves.",
       "evidence_path": "src-tauri/src/core/update.rs",
-      "evidence_note": "history snapshots keyed only by integer revision; rollback decrements"
+      "evidence_note": "New operations retain unique transaction before-images and reject corrupt rollback snapshots. Save-schema compatibility and older ambiguous history migration remain open."
     },
     {
       "id": "SAFE-5",
@@ -133,7 +133,7 @@
       "problem": "Separate current playable health from most recent attempted validation.",
       "done_when": "Rejecting a new candidate does not mislabel unchanged current build; show build evidence revision and outstanding recovery separately.",
       "evidence_path": "src-tauri/src/core/status.rs",
-      "evidence_note": "pipeline_ready reads last_validation.passed without matching report revision"
+      "evidence_note": "pipeline_ready reads last_validation.passed without matching report revision; SAFE-1 now forces not-ready while a recovery journal/error remains."
     }
   ]
 }

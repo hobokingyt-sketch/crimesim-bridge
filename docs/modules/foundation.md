@@ -9,13 +9,11 @@ Use `python tools/project_memory.py brief --module foundation` for a bounded rea
 Read actual source before changing behavior; this card is a map, not an implementation.
 
 ## Contract
-Keep filesystem ownership explicit. Generated caches and user saves are not authoritative project source.
+Filesystem replacement writes and syncs a same-directory temporary file, then renames without unlinking the previous destination. Snapshots reject links/reparse paths and preserve source UIDs.
 
-## Known limitation at the audit checkpoint
-atomic_write currently deletes the destination before rename; the name is not a crash-durability guarantee.
-See the matching module entries in `project_control/BACKLOG.json` for acceptance criteria.
+## Known limitation
+Directory durability differs by OS/filesystem. Standard OS flush requests do not prove controller-level power-loss safety. Full incoming ZIP attack handling remains SAFE-3.
 
 ## Change route
-Read the direct dependencies' cards before changing shared interfaces. Inspect affected consumers
-as needed; this is not a prohibition on cross-module work. Update this card only when its meaning
-changes. Report tests as executed, failed, skipped, or unavailable; never infer success from filenames.
+Read only affected source and neighbor interfaces. Update decisions and checks with intentional changes.
+See docs/RECOVERY.md for the recovery state machine; do not add bypass promotion helpers.

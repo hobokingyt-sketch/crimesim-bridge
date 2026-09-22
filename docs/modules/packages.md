@@ -9,13 +9,11 @@ Use `python tools/project_memory.py brief --module packages` for a bounded readi
 Read actual source before changing behavior; this card is a map, not an implementation.
 
 ## Contract
-Full-file replacements are tied to exact base hashes. Omitted assets are unknown contents, not missing gameplay.
+Update bytes are captured in the transaction directory and revalidated before assembly. Applied archives are content-checked; archive failures retain the committed journal for retry. Context export acquires the workspace lock.
 
-## Known limitation at the audit checkpoint
-Desktop packs are broad game-workspace exports. ZIP byte/entry limits, duplicate destinations and stronger path rules still need adversarial tests.
-See the matching module entries in `project_control/BACKLOG.json` for acceptance criteria.
+## Known limitation
+ZIP size/duplicate/Windows-path attacks remain SAFE-3. Task-scoped game packs and desktop button integration remain PACK-1.
 
 ## Change route
-Read the direct dependencies' cards before changing shared interfaces. Inspect affected consumers
-as needed; this is not a prohibition on cross-module work. Update this card only when its meaning
-changes. Report tests as executed, failed, skipped, or unavailable; never infer success from filenames.
+Read only affected source and neighbor interfaces. Update decisions and checks with intentional changes.
+See docs/RECOVERY.md for the recovery state machine; do not add bypass promotion helpers.

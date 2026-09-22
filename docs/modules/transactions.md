@@ -9,13 +9,11 @@ Use `python tools/project_memory.py brief --module transactions` for a bounded r
 Read actual source before changing behavior; this card is a map, not an implementation.
 
 ## Contract
-A candidate must not become live before required validation. Source and executable revisions must remain coherent.
+The Godot adapter invokes the shared bridge-safety crate for all source/build promotion. Its schema-2 journal is the commit record. Before-images are transaction-specific. No promotion after failed validation; any recovery failure blocks later operations.
 
-## Known limitation at the audit checkpoint
-Rollback bypasses the update journal; recovery errors are swallowed in apply; old history can collide after rollback and divergent reapply. These are open risks, not guarantees.
-See the matching module entries in `project_control/BACKLOG.json` for acceptance criteria.
+## Known limitation
+Process-death tests cover filesystem transitions, not physical power loss. Unknown/legacy journals are deliberately preserved and block. Save-schema transitions remain SAFE-4.
 
 ## Change route
-Read the direct dependencies' cards before changing shared interfaces. Inspect affected consumers
-as needed; this is not a prohibition on cross-module work. Update this card only when its meaning
-changes. Report tests as executed, failed, skipped, or unavailable; never infer success from filenames.
+Read only affected source and neighbor interfaces. Update decisions and checks with intentional changes.
+See docs/RECOVERY.md for the recovery state machine; do not add bypass promotion helpers.

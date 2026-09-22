@@ -41,11 +41,11 @@ for required in ['runtime_manifest.json', 'Get-FileHash', 'windows_debug_x86_64.
     if required not in workflow: errors.append(f'workflow missing runtime integrity element: {required}')
 
 update = (ROOT/'src-tauri/src/core/update.rs').read_text()
-for required in ['TransactionPhase::SourcePromoting', 'TransactionPhase::Committed', 'quarantine_update', 'build_history_root']:
+for required in ['transaction::execute', 'Kind::Update', 'Kind::Rollback', 'quarantine_update']:
     if required not in update: errors.append(f'update engine missing hardening element: {required}')
 
 transaction = (ROOT/'src-tauri/src/core/transaction.rs').read_text()
-for required in ['recover_incomplete', 'restore_source', 'restore_build']:
+for required in ['recover_incomplete', 'Workspace', 'ws.recover', 'tx.promote']:
     if required not in transaction: errors.append(f'transaction engine missing: {required}')
 
 if errors:

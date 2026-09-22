@@ -1,0 +1,17 @@
+[package]
+name = "bridge-safety"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.89"
+publish = false
+
+[features]
+default = []
+# Test processes stop at named boundaries so their parent can forcibly kill them.
+# Never enable in the desktop dependency or release workflow.
+fault-injection = []
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"

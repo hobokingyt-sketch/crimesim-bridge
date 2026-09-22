@@ -80,13 +80,13 @@ fn play_current() -> Result<ActionResult, String> { play::current().map_err(user
 pub fn run() {
     tauri::Builder::default()
         .setup(|app| {
-            if let Err(err) = runtime::install_bundled(app.handle()) {
-                eprintln!("Bundled Godot runtime install failed: {err}");
-            }
             match transaction::recover_incomplete() {
-                Ok(Some(msg)) => eprintln!("Bridge crash recovery: {msg}"),
-                Ok(None) => {},
-                Err(err) => eprintln!("Bridge crash recovery failed: {err}"),
+                Ok(_) => {
+                    if let Err(err) = runtime::install_bundled(app.handle()) {
+                        eprintln!("Bundled Godot runtime install failed: {err}");
+                    }
+                }
+                Err(err) => eprintln!("Recovery required; runtime installation skipped: {err}"),
             }
             Ok(())
         })

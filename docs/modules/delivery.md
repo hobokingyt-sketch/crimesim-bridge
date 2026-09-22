@@ -9,13 +9,11 @@ Use `python tools/project_memory.py brief --module delivery` for a bounded readi
 Read actual source before changing behavior; this card is a map, not an implementation.
 
 ## Contract
-Keep fast checks, real Windows validation and installer publication distinct. A configured workflow is not a successful release.
+Fast recovery CI runs production-library process-death tests separately from Windows Godot E2E and installer packaging. PR Windows builds validate adapters and E2E without publishing an installer.
 
-## Known limitation at the audit checkpoint
-Workspace target output is at root target/ but CI cache and installer collection use src-tauri/target/. No committed Cargo.lock; dependency/toolchain reproducibility is incomplete.
-See the matching module entries in `project_control/BACKLOG.json` for acceptance criteria.
+## Known limitation
+Installer output-path, clean-install and locked-toolchain work remain BUILD-1. Cargo.lock is not added by this pass.
 
 ## Change route
-Read the direct dependencies' cards before changing shared interfaces. Inspect affected consumers
-as needed; this is not a prohibition on cross-module work. Update this card only when its meaning
-changes. Report tests as executed, failed, skipped, or unavailable; never infer success from filenames.
+Read only affected source and neighbor interfaces. Update decisions and checks with intentional changes.
+See docs/RECOVERY.md for the recovery state machine; do not add bypass promotion helpers.

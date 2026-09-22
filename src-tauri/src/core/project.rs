@@ -54,9 +54,7 @@ ssh_remote_deploy/enabled=false
     Ok(true)
 }
 
-pub fn bootstrap_demo() -> BridgeResult<BridgeProject> {
-    paths::ensure_layout()?;
-    let root = paths::current_project()?;
+pub fn bootstrap_demo_at(root: &Path) -> BridgeResult<BridgeProject> {
     if root.join("project.godot").exists() {
         let project = read_project(&root)?;
         ensure_export_preset(&root, &project.export_preset)?;
@@ -106,10 +104,21 @@ func _init() -> void:
         push_error("Bridge smoke test could not instantiate main scene")
         quit(11)
         return
+    instance.free()
     quit(0)
 "#)?;
 
-    let project = BridgeProject {
+    let project = default_metadata();
+    write_project(&root, &project)?;
+    ensure_export_preset(&root, &project.export_preset)?;
+    fs::write(root.join("project_control/PROJECT.md"), "# Criminal Simulation\n\nBridge bootstrap. The map is the world; UI is the command OS.\n")?;
+    fs::write(root.join("project_control/CURRENT_STATE.md"), "# Current State\n\nRevision 0. Bridge bootstrap only. No game systems implemented.\n")?;
+    Ok(project)
+}
+
+/// Pinned game identity. This creates no files or live workspace.
+pub fn default_metadata() -> BridgeProject {
+    BridgeProject {
         schema: 1,
         project_id: "crime_sim".into(),
         project_name: "Criminal Simulation".into(),
@@ -119,10 +128,5 @@ func _init() -> void:
         save_schema: 1,
         main_scene: "res://game/main.tscn".into(),
         export_preset: "Windows Desktop".into(),
-    };
-    write_project(&root, &project)?;
-    ensure_export_preset(&root, &project.export_preset)?;
-    fs::write(root.join("project_control/PROJECT.md"), "# Criminal Simulation\n\nBridge bootstrap. The map is the world; UI is the command OS.\n")?;
-    fs::write(root.join("project_control/CURRENT_STATE.md"), "# Current State\n\nRevision 0. Bridge bootstrap only. No game systems implemented.\n")?;
-    Ok(project)
+    }
 }

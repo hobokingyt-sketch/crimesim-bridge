@@ -2,21 +2,21 @@
   "schema": 1,
   "modules": {
     "delivery": {
-      "source_sha256": "3bd734eaaac82344b314cd42bd72803851e065a77d0c58013810a77f8e0391dd",
-      "reviewed_at": "2026-09-22T05:51:27.322099+00:00",
-      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "source_sha256": "1f9f25b3bce52f78d131a3bc978745112bbfbf4039046a568edddde8a4735c74",
+      "reviewed_at": "2026-09-22T06:24:23.811499+00:00",
+      "note": "SAFE-1: reviewed coordinator and affected adapters; Rust behavior awaits hosted CI.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "engine": {
-      "source_sha256": "65293e973484ccb31f3e2c3644827b6af796277859ff3344c4f474a39b7e370a",
-      "reviewed_at": "2026-09-22T05:51:27.328561+00:00",
-      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "source_sha256": "6632ae162cf7e659a05fc598332587f51987a0f7b2714cb501f8cf0e0d65c633",
+      "reviewed_at": "2026-09-22T06:24:22.429196+00:00",
+      "note": "SAFE-1: reviewed coordinator and affected adapters; Rust behavior awaits hosted CI.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "foundation": {
-      "source_sha256": "8de57467b733b55fda4a980d91b7201fbd379eedc20f4582b7e91af9cc1f348f",
-      "reviewed_at": "2026-09-22T05:51:27.334987+00:00",
-      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "source_sha256": "be54857206ae85701ba1dd7de7a835c605e300ccf97a48034e569e5a4a0e1980",
+      "reviewed_at": "2026-09-22T06:24:19.706089+00:00",
+      "note": "SAFE-1: reviewed coordinator and affected adapters; Rust behavior awaits hosted CI.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "memory": {
@@ -26,27 +26,27 @@
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "packages": {
-      "source_sha256": "ef2445e33a791d8cdff18b497877ee7e15cb321d1145bf250f8effa769c515e4",
-      "reviewed_at": "2026-09-22T05:51:27.348160+00:00",
-      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "source_sha256": "a3831b4b0ed2db423c574a39ccc84596a32323f86e7b776e1c51d6eefda2f02e",
+      "reviewed_at": "2026-09-22T06:24:21.082335+00:00",
+      "note": "SAFE-1: reviewed coordinator and affected adapters; Rust behavior awaits hosted CI.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "project": {
-      "source_sha256": "beeda7a3e8aae7145a6c3a0054e77d57d2ba11d40a26f7becb956ff65348af1b",
-      "reviewed_at": "2026-09-22T05:51:27.354333+00:00",
-      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "source_sha256": "0e75e947c763a1e62ef44e2a251312dc8f844418e0feb22f678dc557d59fddb6",
+      "reviewed_at": "2026-09-22T06:24:20.390359+00:00",
+      "note": "SAFE-1: reviewed coordinator and affected adapters; Rust behavior awaits hosted CI.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "shell": {
-      "source_sha256": "b73500e6f5c954286dd3386fe5886b50de476c19faa0a726c04f41e6cf4cd46c",
-      "reviewed_at": "2026-09-22T05:51:27.364476+00:00",
-      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "source_sha256": "3bc4491201007dcc484ae51762fa3ab8a297468c7cb61cce42f9be3972cb5a9c",
+      "reviewed_at": "2026-09-22T06:24:23.113679+00:00",
+      "note": "SAFE-1: reviewed coordinator and affected adapters; Rust behavior awaits hosted CI.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "transactions": {
-      "source_sha256": "60879179e72ae44fdaf2d3cc9d7626f3cbd7389f34770ccd9175af343e604886",
-      "reviewed_at": "2026-09-22T05:51:27.371212+00:00",
-      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "source_sha256": "caeb8e5917e4fd8b630168a3d8dbd4bba064e168ac1807c7125b2aac2c88b70f",
+      "reviewed_at": "2026-09-22T06:24:21.778989+00:00",
+      "note": "SAFE-1: reviewed coordinator and affected adapters; Rust behavior awaits hosted CI.",
       "meaning": "Developer review declaration; not automated semantic proof."
     }
   }

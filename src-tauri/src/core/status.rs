@@ -2,7 +2,7 @@ use crate::core::{error::BridgeResult, package, paths, project, runtime, types::
 use std::fs;
 
 pub fn get() -> BridgeResult<BridgeStatus> {
-    paths::ensure_layout()?;
+    let _workspace_guard = bridge_safety::Workspace::open(&paths::root()?)?;
     let project_root = paths::current_project()?;
     let project_present = project_root.join("project.godot").exists();
     let meta = if project_present { project::read_project(&project_root).ok() } else { None };
@@ -18,9 +18,11 @@ pub fn get() -> BridgeResult<BridgeStatus> {
         Err(err) => (false, format!("integrity check error: {err}")),
     };
     let last_recovery = fs::read_to_string(paths::root()?.join(paths::LAST_RECOVERY)).ok();
+    let recovery_required = paths::transaction_journal()?.exists();
+    let recovery_error = fs::read_to_string(paths::root()?.join(paths::RECOVERY_ERROR)).ok();
     let source_revision = meta.as_ref().map(|m| m.revision);
     let validation_ok = last_validation.as_ref().map(|r| r.passed).unwrap_or(false);
-    let pipeline_ready = project_present
+    let pipeline_ready = !recovery_required && recovery_error.is_none() && project_present
         && runtime_ok
         && source_revision.is_some()
         && source_revision == playable_revision
@@ -41,5 +43,7 @@ pub fn get() -> BridgeResult<BridgeStatus> {
         latest_update,
         last_validation,
         last_recovery,
+        recovery_required,
+        recovery_error,
     })
 }

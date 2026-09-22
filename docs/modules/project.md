@@ -9,13 +9,11 @@ Use `python tools/project_memory.py brief --module project` for a bounded readin
 Read actual source before changing behavior; this card is a map, not an implementation.
 
 ## Contract
-A new workspace is a Godot bootstrap, not a developed game. Preserve Godot resource identities and do not silently change the engine pin.
+Bootstrap writes only to a caller-supplied candidate directory. Default metadata is separate from file creation. The pinned engine, scene resources and profession/game scope do not change in this pass.
 
-## Known limitation at the audit checkpoint
-Game project memory is only a minimal placeholder. Future templates need their own identity and contracts, distinct from Bridge memory.
-See the matching module entries in `project_control/BACKLOG.json` for acceptance criteria.
+## Known limitation
+Managed-game memory is still a minimal placeholder (PACK-1). Save-schema transition policy remains SAFE-4.
 
 ## Change route
-Read the direct dependencies' cards before changing shared interfaces. Inspect affected consumers
-as needed; this is not a prohibition on cross-module work. Update this card only when its meaning
-changes. Report tests as executed, failed, skipped, or unavailable; never infer success from filenames.
+Read only affected source and neighbor interfaces. Update decisions and checks with intentional changes.
+See docs/RECOVERY.md for the recovery state machine; do not add bypass promotion helpers.

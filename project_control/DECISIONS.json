@@ -47,6 +47,19 @@
       "reason": "Protection must not freeze user-directed design or impose bureaucracy on every cosmetic edit.",
       "tradeoff": "Semantic consistency still requires developer review. Deliberate redesign updates decisions, interfaces and tests together.",
       "supersedes": null
+    },
+    {
+      "id": "ADR-005",
+      "status": "accepted",
+      "modules": [
+        "transactions",
+        "foundation",
+        "shell"
+      ],
+      "decision": "One shared coordinator commits source/build pairs for init, repair, update and rollback, with before-images addressed by unique transaction identity.",
+      "reason": "Crash recovery must not depend on duplicated UI-specific promotion paths or stale numeric revision snapshots. Tests use the same Rust library as the app.",
+      "tradeoff": "Retained snapshots consume disk. Legacy incomplete journals stop safely rather than inferring intent. Process-death tests are not physical power-loss or sandbox certification.",
+      "supersedes": null
     }
   ]
 }

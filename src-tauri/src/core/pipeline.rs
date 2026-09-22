@@ -1,63 +1,33 @@
-use crate::core::{
-    error::{BridgeError, BridgeResult},
-    godot, paths, project, runtime, transaction, update,
-    types::ActionResult,
-};
+use crate::core::{error::{BridgeError, BridgeResult}, fsops::copy_project_tree,
+    godot, paths, project, runtime, transaction, update, types::ActionResult};
+use bridge_safety::Kind;
 use std::{fs, path::Path};
 
 fn current_build_revision() -> Option<u64> {
     fs::read_to_string(paths::current_build().ok()?.join("bridge_revision.txt"))
-        .ok()?
-        .trim()
-        .parse()
-        .ok()
+        .ok()?.trim().parse().ok()
 }
 
 pub fn initialize() -> BridgeResult<ActionResult> {
-    paths::ensure_layout()?;
-    transaction::recover_incomplete()?;
-
-    let (runtime_ok, runtime_detail) = runtime::integrity()?;
+    let ws = transaction::open_recovered()?;
+    let (runtime_ok, detail) = runtime::integrity()?;
     if !runtime_ok {
-        return Ok(ActionResult {
-            ok: false,
-            title: "Godot runtime unavailable".into(),
-            detail: runtime_detail,
-            path: None,
-        });
+        return Ok(ActionResult { ok: false, title: "Godot runtime unavailable".into(), detail, path: None });
     }
-
-    let meta = project::bootstrap_demo()?;
-    if current_build_revision() == Some(meta.revision) {
-        let (smoke_ok, smoke_detail) = godot::smoke_current_build()?;
-        if smoke_ok {
-            return Ok(ActionResult {
-                ok: true,
-                title: "Pipeline already initialized".into(),
-                detail: format!("Source and playable build are both revision {}. {smoke_detail}", meta.revision),
-                path: Some(paths::current_project()?.to_string_lossy().to_string()),
-            });
-        }
+    let exists = ws.source().join("project.godot").is_file();
+    let meta = if exists { project::read_project(&ws.source())? } else { project::default_metadata() };
+    if exists && current_build_revision() == Some(meta.revision) {
+        let (ok, detail) = godot::smoke_current_build()?;
+        if ok { return Ok(ActionResult { ok: true, title: "Pipeline already initialized".into(), detail, path: None }); }
     }
-
-    let (report, candidate) = godot::validate(&paths::current_project()?, &meta)?;
-    update::save_validation(&report)?;
-    if !report.passed {
-        return Ok(ActionResult {
-            ok: false,
-            title: "Pipeline initialization failed".into(),
-            detail: if report.errors.is_empty() { "Godot validation failed".into() } else { report.errors.join(" | ") },
-            path: Some(paths::logs_root()?.to_string_lossy().to_string()),
-        });
-    }
-    let candidate = candidate.ok_or_else(|| BridgeError::Invalid("Initialization validation passed without producing a playable build".into()))?;
-    update::promote_build(candidate, meta.revision)?;
-    Ok(ActionResult {
-        ok: true,
-        title: "Pipeline initialized".into(),
-        detail: format!("Revision {} source and Windows playable build are ready.", meta.revision),
-        path: Some(paths::current_project()?.to_string_lossy().to_string()),
-    })
+    transaction::execute(&ws, if exists { Kind::Repair } else { Kind::Initialize }, &meta, None, |stage, _| {
+        if exists { copy_project_tree(&ws.source(), stage)?; }
+        else { project::bootstrap_demo_at(stage)?; }
+        Ok(())
+    })?;
+    Ok(ActionResult { ok: true, title: "Pipeline initialized".into(),
+        detail: format!("Revision {} source and playable Windows build committed together.", meta.revision),
+        path: Some(ws.source().to_string_lossy().into()) })
 }
 
 pub fn assert_end_to_end(fixture_update: &Path) -> BridgeResult<ActionResult> {
