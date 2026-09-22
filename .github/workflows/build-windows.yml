@@ -124,15 +124,27 @@ jobs:
           binary_format/architecture="x86_64"
           '@ | Set-Content (Join-Path $project "export_presets.cfg") -Encoding utf8
 
-          & $env:GODOT_EXE --headless --path $project --import --quit
-          if ($LASTEXITCODE -ne 0) { throw "Godot import failed: $LASTEXITCODE" }
+          function Invoke-GodotChecked {
+            param(
+              [string]$FilePath,
+              [string[]]$Arguments,
+              [string]$Label
+            )
+            $stdout = Join-Path $project "$Label.out.txt"
+            $stderr = Join-Path $project "$Label.err.txt"
+            $p = Start-Process -FilePath $FilePath -ArgumentList $Arguments -NoNewWindow -Wait -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+            if (Test-Path $stdout) { Get-Content $stdout | Write-Host }
+            if (Test-Path $stderr) { Get-Content $stderr | Write-Host }
+            if ($p.ExitCode -ne 0) { throw "$Label failed with exit code $($p.ExitCode)" }
+          }
 
-          & $env:GODOT_EXE --headless --path $project --export-debug "Windows Desktop" (Join-Path $build "CrimeSimSmoke.exe")
-          if ($LASTEXITCODE -ne 0) { throw "Godot export failed: $LASTEXITCODE" }
-          if (-not (Test-Path (Join-Path $build "CrimeSimSmoke.exe"))) { throw "Exported smoke executable missing" }
+          Invoke-GodotChecked -FilePath $env:GODOT_EXE -Arguments @("--headless", "--path", $project, "--import", "--quit") -Label "import"
 
-          & (Join-Path $build "CrimeSimSmoke.exe") --headless --path $project
-          if ($LASTEXITCODE -ne 0) { throw "Exported Godot smoke failed: $LASTEXITCODE" }
+          $smokeExe = Join-Path $build "CrimeSimSmoke.exe"
+          Invoke-GodotChecked -FilePath $env:GODOT_EXE -Arguments @("--headless", "--path", $project, "--export-debug", "Windows Desktop", $smokeExe) -Label "export"
+          if (-not (Test-Path $smokeExe)) { throw "Exported smoke executable missing" }
+
+          Invoke-GodotChecked -FilePath $smokeExe -Arguments @("--headless", "--path", $project) -Label "game-smoke"
 
           Get-FileHash (Join-Path $build "CrimeSimSmoke.exe") -Algorithm SHA256
           New-Item -ItemType Directory -Force -Path "ci-artifacts/godot" | Out-Null
