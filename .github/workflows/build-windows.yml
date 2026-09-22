@@ -3,6 +3,8 @@ name: Build Windows Bridge
 on:
   workflow_dispatch:
   push:
+    branches:
+      - "main"
     tags:
       - "bridge-v*"
 
