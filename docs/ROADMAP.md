@@ -1,6 +1,10 @@
 # Bridge roadmap
 
-## Foundation v0.1 — complete
+> Project Armor I: begin at `AGENTS.md` and `project_control/CURRENT.json`.
+> This document describes design intent and historical implementation, not blanket proof of safety.
+> Open gaps and acceptance criteria are tracked in `project_control/BACKLOG.json`.
+
+## Foundation v0.1 — implemented; verification scoped
 
 - Multi-file Tauri/Rust application.
 - Workspace/project metadata.
@@ -13,7 +17,7 @@
 - Minimal one-button-oriented UI.
 - Windows CI installer pipeline skeleton.
 
-## Hardening v0.2 — complete
+## Hardening v0.2 — implemented; verification scoped
 
 - Durable transaction journal.
 - Startup crash recovery to last committed revision.
@@ -26,7 +30,7 @@
 - Source + playable build required before update commit.
 - Recovery-model fixtures/tests.
 
-## First Real Windows Pipeline v0.25 — current/implemented
+## First Real Windows Pipeline v0.25 — implementation checkpoint; inspect current evidence
 
 - Isolated Bridge root/download/runtime overrides for deterministic integration testing.
 - Verify actual Godot `--version` against pinned project version.

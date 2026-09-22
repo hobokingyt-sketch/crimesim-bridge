@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "decisions": [
+    {
+      "id": "ADR-001",
+      "status": "accepted",
+      "modules": [
+        "memory"
+      ],
+      "decision": "Repository facts and scoped reading routes replace dependence on conversation memory.",
+      "reason": "New chats must restart cheaply without importing old speculation or forgetting unresolved failures.",
+      "tradeoff": "Maintained cards and checkpoints need small updates alongside meaningful code changes.",
+      "supersedes": null
+    },
+    {
+      "id": "ADR-002",
+      "status": "accepted",
+      "modules": [
+        "memory",
+        "shell",
+        "project"
+      ],
+      "decision": "Bridge and managed game keep distinct identities, source roots and context packets.",
+      "reason": "Changing development infrastructure must not be confused with editing the simulated game.",
+      "tradeoff": "Desktop game-pack integration is a separate tracked task (PACK-1).",
+      "supersedes": null
+    },
+    {
+      "id": "ADR-003",
+      "status": "accepted",
+      "modules": [
+        "transactions",
+        "packages"
+      ],
+      "decision": "Full changed files are staged against exact base revision/hashes before promotion.",
+      "reason": "Avoid fuzzy patches, accidental live overwrite and incorrect-base updates.",
+      "tradeoff": "Hashes prevent some drift; they do not prove code correctness or authenticate the author. Crash safety still requires SAFE-1.",
+      "supersedes": null
+    },
+    {
+      "id": "ADR-004",
+      "status": "accepted",
+      "modules": [
+        "memory"
+      ],
+      "decision": "Hard checks cover objective structural errors; size and freshness remain review signals.",
+      "reason": "Protection must not freeze user-directed design or impose bureaucracy on every cosmetic edit.",
+      "tradeoff": "Semantic consistency still requires developer review. Deliberate redesign updates decisions, interfaces and tests together.",
+      "supersedes": null
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "modules": {
+    "delivery": {
+      "source_sha256": "3bd734eaaac82344b314cd42bd72803851e065a77d0c58013810a77f8e0391dd",
+      "reviewed_at": "2026-09-22T05:51:27.322099+00:00",
+      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "meaning": "Developer review declaration; not automated semantic proof."
+    },
+    "engine": {
+      "source_sha256": "65293e973484ccb31f3e2c3644827b6af796277859ff3344c4f474a39b7e370a",
+      "reviewed_at": "2026-09-22T05:51:27.328561+00:00",
+      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "meaning": "Developer review declaration; not automated semantic proof."
+    },
+    "foundation": {
+      "source_sha256": "8de57467b733b55fda4a980d91b7201fbd379eedc20f4582b7e91af9cc1f348f",
+      "reviewed_at": "2026-09-22T05:51:27.334987+00:00",
+      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "meaning": "Developer review declaration; not automated semantic proof."
+    },
+    "memory": {
+      "source_sha256": "37365533acb1bdd91198bec7adb33386962fc987ce6b808fc2c83ee5cd4f130c",
+      "reviewed_at": "2026-09-22T05:51:27.341707+00:00",
+      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "meaning": "Developer review declaration; not automated semantic proof."
+    },
+    "packages": {
+      "source_sha256": "ef2445e33a791d8cdff18b497877ee7e15cb321d1145bf250f8effa769c515e4",
+      "reviewed_at": "2026-09-22T05:51:27.348160+00:00",
+      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "meaning": "Developer review declaration; not automated semantic proof."
+    },
+    "project": {
+      "source_sha256": "beeda7a3e8aae7145a6c3a0054e77d57d2ba11d40a26f7becb956ff65348af1b",
+      "reviewed_at": "2026-09-22T05:51:27.354333+00:00",
+      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "meaning": "Developer review declaration; not automated semantic proof."
+    },
+    "shell": {
+      "source_sha256": "b73500e6f5c954286dd3386fe5886b50de476c19faa0a726c04f41e6cf4cd46c",
+      "reviewed_at": "2026-09-22T05:51:27.364476+00:00",
+      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "meaning": "Developer review declaration; not automated semantic proof."
+    },
+    "transactions": {
+      "source_sha256": "60879179e72ae44fdaf2d3cc9d7626f3cbd7389f34770ccd9175af343e604886",
+      "reviewed_at": "2026-09-22T05:51:27.371212+00:00",
+      "note": "Armor I audit: source ownership and contracts reviewed; open behavior risks retained in BACKLOG.json; no blanket safety certification.",
+      "meaning": "Developer review declaration; not automated semantic proof."
+    }
+  }
+}

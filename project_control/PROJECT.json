@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "repository": "hobokingyt-sketch/crimesim-bridge",
+  "product": "CrimeSim Bridge",
+  "kind": "development_tool",
+  "user_workflow": "Chat -> context/update archive -> Bridge -> private Godot worker -> playable game",
+  "game_source_location": "Bridge-managed local workspace, not this repository root",
+  "version_source": "src-tauri/Cargo.toml",
+  "engine_pin_source": "src-tauri/src/core/project.rs",
+  "memory_entry": "AGENTS.md",
+  "principle": "Repository-owned, task-scoped memory with explicit evidence; no dependence on old chats."
+}
