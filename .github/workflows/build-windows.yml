@@ -153,11 +153,8 @@ jobs:
       - name: Compile-check Tauri shell
         run: cargo check --workspace
 
-      - name: Install Tauri CLI
-        run: cargo install tauri-cli --version "^2.0" --locked
-
       - name: Build NSIS installer
-        run: cargo tauri build
+        run: npx --yes @tauri-apps/cli@2 build
 
       - name: Collect installer
         shell: pwsh
