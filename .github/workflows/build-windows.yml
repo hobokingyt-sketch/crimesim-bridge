@@ -3,6 +3,8 @@ name: Build Windows Bridge
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
       - "bridge-v*"
 
@@ -64,4 +66,99 @@ jobs:
           Copy-Item $godotExe.FullName (Join-Path $runtime "godot.exe") -Force
           New-Item -ItemType File -Force -Path (Join-Path $runtime "_sc_") | Out-Null
 
-          $templateDest = Join-Path $runtime "editor_data
+          $templateDest = Join-Path $runtime "editor_data/export_templates/${version}.stable"
+          New-Item -ItemType Directory -Force -Path $templateDest | Out-Null
+          $debugTemplate = Get-ChildItem (Join-Path $temp "templates") -Filter "windows_debug_x86_64.exe" -Recurse | Select-Object -First 1
+          $releaseTemplate = Get-ChildItem (Join-Path $temp "templates") -Filter "windows_release_x86_64.exe" -Recurse | Select-Object -First 1
+          if (-not $debugTemplate -or -not $releaseTemplate) { throw "Required Windows export templates not found" }
+          Copy-Item $debugTemplate.FullName (Join-Path $templateDest "windows_debug_x86_64.exe") -Force
+          Copy-Item $releaseTemplate.FullName (Join-Path $templateDest "windows_release_x86_64.exe") -Force
+
+          $manifestFiles = @(
+            "godot.exe",
+            "GODOT_LICENSE.txt",
+            "README.txt",
+            "editor_data/export_templates/${version}.stable/windows_debug_x86_64.exe",
+            "editor_data/export_templates/${version}.stable/windows_release_x86_64.exe"
+          )
+          $entries = @()
+          foreach ($rel in $manifestFiles) {
+            $full = Join-Path $runtime $rel
+            $entries += @{ path = $rel.Replace("\", "/"); sha256 = (Get-FileHash $full -Algorithm SHA256).Hash.ToLowerInvariant() }
+          }
+          @{ schema = 1; engine_version = $version; files = $entries } |
+            ConvertTo-Json -Depth 5 |
+            Set-Content -Path (Join-Path $runtime "runtime_manifest.json") -Encoding UTF8
+
+          $reported = & (Join-Path $runtime "godot.exe") --version
+          Write-Host "Bundled Godot reports: $reported"
+          if (-not ($reported -like "${version}*")) { throw "Downloaded Godot version mismatch: $reported" }
+
+      - name: Validate repository models
+        shell: pwsh
+        run: |
+          python tools/validate_repo.py
+          python tools/test_transaction_model.py
+          python tools/test_crash_recovery_model.py
+          python tools/test_runtime_manifest_model.py
+          python tools/test_pipeline_contract.py
+          node --check web/app.js
+
+      - name: Compile-check Rust workspace
+        run: cargo check --workspace
+
+      - name: Run real Godot end-to-end Bridge smoke
+        shell: pwsh
+        env:
+          CRIMESIM_BRIDGE_ROOT: ${{ runner.temp }}\crimesim-bridge-e2e
+          CRIMESIM_BRIDGE_DOWNLOADS: ${{ runner.temp }}\crimesim-bridge-e2e\downloads
+          CRIMESIM_BRIDGE_RUNTIME_SOURCE: ${{ github.workspace }}\CrimeSimBridge\src-tauri\resources\godot
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path $env:CRIMESIM_BRIDGE_DOWNLOADS | Out-Null
+          cargo run --bin bridge_pipeline_smoke
+
+      - name: Upload end-to-end diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CrimeSim-Bridge-E2E-Diagnostics
+          path: |
+            ${{ runner.temp }}/crimesim-bridge-e2e/logs/**
+            ${{ runner.temp }}/crimesim-bridge-e2e/state/**
+            ${{ runner.temp }}/crimesim-bridge-e2e/builds/current/**
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2.0" --locked
+
+      - name: Build NSIS installer
+        run: cargo tauri build
+
+      - name: Verify installer and write release manifest
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $installer = Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*.exe" | Select-Object -First 1
+          if (-not $installer) { throw "NSIS installer was not produced" }
+          $hash = (Get-FileHash $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          $manifest = @{
+            bridge_version = "0.2.5"
+            godot_version = $env:GODOT_VERSION
+            installer = $installer.Name
+            sha256 = $hash
+            e2e_pipeline = "passed"
+          }
+          $manifest | ConvertTo-Json -Depth 4 | Set-Content "src-tauri/target/release/bundle/nsis/release_manifest.json" -Encoding UTF8
+          Write-Host "Installer: $($installer.FullName)"
+          Write-Host "SHA256: $hash"
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: CrimeSim-Bridge-Windows-v0.2.5
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/nsis/release_manifest.json
+          if-no-files-found: error
