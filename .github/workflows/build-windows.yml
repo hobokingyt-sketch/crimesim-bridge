@@ -144,7 +144,7 @@ jobs:
           Invoke-GodotChecked -FilePath $env:GODOT_EXE -Arguments @("--headless", "--path", $project, "--export-debug", "Windows", $smokeExe) -Label "export"
           if (-not (Test-Path $smokeExe)) { throw "Exported smoke executable missing" }
 
-          Invoke-GodotChecked -FilePath $smokeExe -Arguments @("--headless", "--path", $project) -Label "game-smoke"
+          Invoke-GodotChecked -FilePath $smokeExe -Arguments @("--headless") -Label "game-smoke"
 
           Get-FileHash (Join-Path $build "CrimeSimSmoke.exe") -Algorithm SHA256
           New-Item -ItemType Directory -Force -Path "ci-artifacts/godot" | Out-Null
