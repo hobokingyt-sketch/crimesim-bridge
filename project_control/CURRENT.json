@@ -38,5 +38,15 @@
     "command": "python -m unittest discover -s tools/memory/tests -v",
     "platform": "Linux / Python 3.13",
     "scope": "Repository memory and handoff tooling, not Windows runtime safety"
+  },
+  "hosted_verification": {
+    "commit": "a0ab0aed5aec404cdaca9311092d29db5d82f84c",
+    "run_id": 35693072715,
+    "result": "passed",
+    "platforms": [
+      "ubuntu-latest",
+      "windows-latest"
+    ],
+    "scope": "Memory structure, behavior tests, frontend syntax; not installer delivery or Rust crash safety"
   }
 }

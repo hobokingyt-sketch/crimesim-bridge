@@ -14,8 +14,9 @@ size/freshness warnings, scoped archive contents/hashes, omitted full files, sec
 path/symlink refusal, dirty-source provenance, no handoff overwrite, and source mutation during packing.
 It does not execute commands from a registry as a side effect of inspection or packaging.
 
-A new independent GitHub Actions workflow runs these memory checks on Linux and Windows.
-Its hosted results must be checked against the resulting commit; a workflow file is not a pass.
+Hosted memory run 35693072715 passed on both ubuntu-latest and windows-latest for
+commit a0ab0aed5aec404cdaca9311092d29db5d82f84c. Both jobs passed structure, behavior and
+frontend syntax steps. This dated evidence is not a claim about untested future commits.
 The Rust application and existing Windows installer workflow were not modified in this pass.
 No new installer, runtime crash-safety certification or desktop scoped-pack button is claimed.
 
