@@ -96,12 +96,12 @@ script = ExtResource("1")
     fs::write(root.join("tests/bridge_smoke.gd"), r#"extends SceneTree
 
 func _init() -> void:
-    var packed := load("res://game/main.tscn")
+    var packed: PackedScene = load("res://game/main.tscn") as PackedScene
     if packed == null:
         push_error("Bridge smoke test could not load main scene")
         quit(10)
         return
-    var instance := packed.instantiate()
+    var instance: Node = packed.instantiate()
     if instance == null:
         push_error("Bridge smoke test could not instantiate main scene")
         quit(11)
