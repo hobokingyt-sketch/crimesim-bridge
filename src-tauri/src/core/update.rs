@@ -68,7 +68,19 @@ fn apply_to_stage(zip_path: &Path, stage: &Path, manifest: &crate::core::types::
 pub fn apply(zip_path: &Path) -> BridgeResult<ActionResult> {
     let ws = transaction::open_recovered()?;
     let original_hash = sha256_file(zip_path)?;
-    let (manifest, current) = verify_update(zip_path)?;
+    let (manifest, current) = match verify_update(zip_path) {
+        Ok(value) => value,
+        Err(error) => {
+            // Preserve terminal-package behavior even when rejection precedes a transaction.
+            // Never archive different bytes downloaded to this filename during verification.
+            if sha256_file(zip_path)? != original_hash {
+                return Err(BridgeError::Invalid("Input changed during verification; no package was moved".into()));
+            }
+            let rejected = package::quarantine_update(zip_path, &error.to_string())?;
+            return Ok(ActionResult { ok: false, title: "Update rejected before staging".into(),
+                detail: error.to_string(), path: Some(rejected.to_string_lossy().into()) });
+        }
+    };
     let mut target = current.clone();
     target.revision = manifest.target_revision;
     let outcome = transaction::execute(&ws, Kind::Update, &target, Some(zip_path), |stage, retained| {

@@ -2,9 +2,9 @@
   "schema": 1,
   "modules": {
     "delivery": {
-      "source_sha256": "1f9f25b3bce52f78d131a3bc978745112bbfbf4039046a568edddde8a4735c74",
-      "reviewed_at": "2026-09-22T06:24:23.811499+00:00",
-      "note": "SAFE-1: reviewed coordinator and affected adapters; Rust behavior awaits hosted CI.",
+      "source_sha256": "ce52bd3dba51eb1df841f4ab85ad2aa444551c25b39b7a554928085b48769421",
+      "reviewed_at": "2026-09-22T06:48:12.038552+00:00",
+      "note": "SAFE-1: added real adapter preflight rejection assertion; recovery matrix passed; expanded Windows E2E pending.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "engine": {
@@ -38,15 +38,15 @@
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "shell": {
-      "source_sha256": "3bc4491201007dcc484ae51762fa3ab8a297468c7cb61cce42f9be3972cb5a9c",
-      "reviewed_at": "2026-09-22T06:24:23.113679+00:00",
-      "note": "SAFE-1: reviewed coordinator and affected adapters; Rust behavior awaits hosted CI.",
+      "source_sha256": "bfbd23844d3add7d216477211538d74781fda498c10e316c21811933f246fbfe",
+      "reviewed_at": "2026-09-22T06:43:25.638329+00:00",
+      "note": "SAFE-1: recovery errors shown in full activity area; UI states checked with mocked bridge responses; installed UX remains pending.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "transactions": {
-      "source_sha256": "caeb8e5917e4fd8b630168a3d8dbd4bba064e168ac1807c7125b2aac2c88b70f",
-      "reviewed_at": "2026-09-22T06:24:21.778989+00:00",
-      "note": "SAFE-1: reviewed coordinator and affected adapters; Rust behavior awaits hosted CI.",
+      "source_sha256": "32a7ea92a047f51ff71fef9001a399fe76a401a6902c5a39be8b0b9e15c563b3",
+      "reviewed_at": "2026-09-22T06:48:11.387957+00:00",
+      "note": "SAFE-1: production recovery tests passed on both CI platforms; reviewed preflight quarantine preservation; expanded adapter E2E pending.",
       "meaning": "Developer review declaration; not automated semantic proof."
     }
   }

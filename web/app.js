@@ -54,7 +54,15 @@
     $('recoveryStatus').textContent = status.recovery_error || (status.recovery_required ? 'Recovery pending; project controls blocked' : status.last_recovery || 'None');
     const healthy = Boolean(status.pipeline_ready);
     $('healthPill').textContent = status.recovery_required || status.recovery_error ? 'RECOVERY REQUIRED' : healthy ? 'READY' : status.project_present ? 'SETUP' : 'EMPTY';
-    $('healthPill').className = `pill ${healthy ? 'good' : 'muted'}`;
+    const needsRecovery = Boolean(status.recovery_required || status.recovery_error);
+    $('healthPill').className = `pill ${needsRecovery ? 'bad' : healthy ? 'good' : 'muted'}`;
+    $('recoveryStatus').title = $('recoveryStatus').textContent;
+    if (needsRecovery) {
+      renderAction({
+        title: 'Recovery required',
+        detail: status.recovery_error || 'An interrupted operation needs recovery. Project changes and launch requests remain blocked until recovery succeeds.'
+      });
+    }
     renderValidation(status.last_validation);
   }
 

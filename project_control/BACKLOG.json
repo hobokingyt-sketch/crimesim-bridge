@@ -42,7 +42,7 @@
       "problem": "Unify update, initialization and rollback under recoverable promotion.",
       "done_when": "Crash-inject every promotion phase; restart repeatedly; source/build either old or new together; recovery failures block mutations and are visible.",
       "evidence_path": "crates/bridge-safety/tests/recovery.rs",
-      "evidence_note": "Shared coordinator, 17 promotion boundaries across initialize/update/rollback/repair plus recovery interruption matrix. Rust execution pending hosted CI; do not mark passed from Python checks."
+      "evidence_note": "Production coordinator matrix passed Linux/Windows in run 35695720943; Windows compile/Godot E2E passed at 982fe29. Latest adapter rejection assertion and error UI refinement await latest-head CI; do not mark the entire pass verified yet."
     },
     {
       "id": "BUILD-1",
