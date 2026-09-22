@@ -1,0 +1,67 @@
+name: Build Windows Bridge
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "bridge-v*"
+
+permissions:
+  contents: read
+
+env:
+  GODOT_VERSION: "4.7.2"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: CrimeSimBridge
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Expand v0.25 source baseline
+        shell: pwsh
+        working-directory: ${{ github.workspace }}
+        run: |
+          Expand-Archive -Path "bridge_source_v0.25.zip" -DestinationPath "." -Force
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "src-tauri -> target"
+
+      - name: Prepare private Godot runtime
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $version = $env:GODOT_VERSION
+          $runtime = "src-tauri/resources/godot"
+          $temp = Join-Path $env:RUNNER_TEMP "crimesim-godot"
+          New-Item -ItemType Directory -Force -Path $runtime | Out-Null
+          Remove-Item -Force (Join-Path $runtime "godot.exe") -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force (Join-Path $runtime "editor_data") -ErrorAction SilentlyContinue
+          Remove-Item -Force (Join-Path $runtime "runtime_manifest.json") -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force $temp -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path $temp | Out-Null
+
+          $godotUrl = "https://godot-releases.nbg1.your-objectstorage.com/${version}-stable/Godot_v${version}-stable_win64.exe.zip"
+          $templatesUrl = "https://godot-releases.nbg1.your-objectstorage.com/${version}-stable/Godot_v${version}-stable_export_templates.tpz"
+          $godotZip = Join-Path $temp "godot.zip"
+          $templatesZip = Join-Path $temp "templates.zip"
+
+          Invoke-WebRequest -Uri $godotUrl -OutFile $godotZip
+          Invoke-WebRequest -Uri $templatesUrl -OutFile $templatesZip
+          Expand-Archive -Path $godotZip -DestinationPath (Join-Path $temp "godot") -Force
+          Expand-Archive -Path $templatesZip -DestinationPath (Join-Path $temp "templates") -Force
+
+          $godotExe = Get-ChildItem (Join-Path $temp "godot") -Filter "Godot*_win64.exe" -Recurse | Select-Object -First 1
+          if (-not $godotExe) { throw "Godot executable not found in official archive" }
+          Copy-Item $godotExe.FullName (Join-Path $runtime "godot.exe") -Force
+          New-Item -ItemType File -Force -Path (Join-Path $runtime "_sc_") | Out-Null
+
+          $templateDest = Join-Path $runtime "editor_data
