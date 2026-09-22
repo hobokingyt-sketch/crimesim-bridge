@@ -11,12 +11,17 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: crimesim-bridge-windows-main
+  cancel-in-progress: true
+
 env:
   GODOT_VERSION: "4.7.2"
 
 jobs:
   build:
     runs-on: windows-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
