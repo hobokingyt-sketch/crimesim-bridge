@@ -8,9 +8,9 @@
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "engine": {
-      "source_sha256": "40627cd66a82e9b8d850acdc6aa9baf656f12c8202dcb1f74e4d14a5ed32fdb6",
-      "reviewed_at": "2026-09-22T07:25:21.067305+00:00",
-      "note": "SAFE-2 source review: one worker gateway, deadline/cleanup bounds, Windows atomic Job assignment; executed Rust tests pending hosted CI.",
+      "source_sha256": "e35330e95b8c04f37aa5797de83fc704449391602c09e6a0bbe5c9004d0a9919",
+      "reviewed_at": "2026-09-22T07:39:46.888406+00:00",
+      "note": "SAFE-2 Windows compile fix: Job access constants are in SystemServices. Linux watchdog passed run35700471424; Windows process tests await rerun.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "foundation": {

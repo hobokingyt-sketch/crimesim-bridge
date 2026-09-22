@@ -3,7 +3,7 @@ use super::{ReadState, Request};
 use std::{ffi::{c_void, OsStr}, io, mem::{size_of, size_of_val, zeroed}, os::windows::{ffi::OsStrExt,
     io::{AsRawHandle, FromRawHandle, OwnedHandle}}, ptr::{null, null_mut}, time::{Duration, Instant}};
 use windows_sys::Win32::{Foundation::*, Security::SECURITY_ATTRIBUTES,
-    Storage::FileSystem::*, System::{JobObjects::*, Pipes::*, Threading::*}};
+    Storage::FileSystem::*, System::{JobObjects::*, Pipes::*, Threading::*, SystemServices::{JOB_OBJECT_QUERY, JOB_OBJECT_TERMINATE}}};
 
 fn wide(s: &OsStr) -> io::Result<Vec<u16>> {
     let mut v: Vec<u16> = s.encode_wide().collect();
@@ -123,7 +123,8 @@ impl Worker {
             WAIT_TIMEOUT => Ok(None),
             WAIT_OBJECT_0 => {
                 let mut code = 0;
-                unsafe { bool_ok(GetExitCodeProcess(raw(&self.process), &mut code))?; }
+                unsafe { bool_ok(GetExitCodeProcess(raw(&self.process), &mut code))?;
+                }
                 Ok(Some(code as i32))
             },
             _ => Err(io::Error::last_os_error()),
