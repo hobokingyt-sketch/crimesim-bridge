@@ -4,6 +4,7 @@ use std::{env, fs, path::{Component, Path, PathBuf}};
 
 pub const PROJECT_META: &str = "project_control/bridge_project.json";
 pub const LAST_VALIDATION: &str = "state/last_validation.json";
+pub const RECOVERY_ERROR: &str = "state/recovery_error.txt";
 pub const LAST_RECOVERY: &str = "state/last_recovery.txt";
 pub const TRANSACTION_JOURNAL: &str = "state/transaction_journal.json";
 
@@ -64,7 +65,7 @@ pub fn downloads() -> Option<PathBuf> {
 
 pub fn ensure_layout() -> BridgeResult<()> {
     for p in [
-        root()?, staging_root()?, history_root()?, build_history_root()?, builds_root()?, current_build()?,
+        root()?, staging_root()?, history_root()?, build_history_root()?, builds_root()?,
         logs_root()?, outgoing_root()?, quarantine_root()?, applied_root()?, runtime_root()?, root()?.join("state"), root()?.join("incoming"),
     ] { std::fs::create_dir_all(p)?; }
     Ok(())

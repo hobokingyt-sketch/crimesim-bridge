@@ -55,33 +55,6 @@ pub struct ValidationReport {
     pub errors: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum TransactionPhase {
-    Verified,
-    Staged,
-    Validated,
-    SourcePromoting,
-    SourcePromoted,
-    BuildPromoting,
-    Committed,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransactionJournal {
-    pub schema: u32,
-    pub transaction_id: String,
-    pub project_id: String,
-    pub base_revision: u64,
-    pub target_revision: u64,
-    pub update_path: String,
-    pub stage_path: String,
-    pub phase: TransactionPhase,
-    pub started_at: String,
-    pub updated_at: String,
-    pub detail: String,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BridgeStatus {
     pub bridge_version: String,
@@ -97,6 +70,8 @@ pub struct BridgeStatus {
     pub latest_update: Option<String>,
     pub last_validation: Option<ValidationReport>,
     pub last_recovery: Option<String>,
+    pub recovery_required: bool,
+    pub recovery_error: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

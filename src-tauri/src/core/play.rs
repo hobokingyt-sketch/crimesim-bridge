@@ -2,6 +2,7 @@ use crate::core::{error::{BridgeError, BridgeResult}, godot, paths, types::Actio
 use std::process::Command;
 
 pub fn current() -> BridgeResult<ActionResult> {
+    let _workspace_guard = crate::core::transaction::open_recovered()?;
     let exe = paths::current_build()?.join("CrimeSim.exe");
     if !exe.exists() {
         return Ok(ActionResult {

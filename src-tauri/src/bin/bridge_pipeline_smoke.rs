@@ -1,5 +1,5 @@
 use crimesim_bridge_lib::core::{package, paths, pipeline, project, runtime, status, update};
-use std::{env, fs, path::PathBuf};
+use std::{env, fs, io::Write, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let root = env::var_os("CRIMESIM_BRIDGE_ROOT")
@@ -24,6 +24,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let result = pipeline::assert_end_to_end(&fixture)?;
     println!("pipeline: {} — {}", result.title, result.detail);
+
+    // A rejected preflight package must leave discovery without mutating the committed pair.
+    let before_source = bridge_safety::fingerprint(&paths::current_project()?, true)?;
+    let before_build = bridge_safety::fingerprint(&paths::current_build()?, false)?;
+    let rejected_input = paths::root()?.join("incoming/CrimeSim_Update_rejected.zip");
+    let mut invalid_manifest = package::read_update_manifest(&fixture)?;
+    invalid_manifest.project_id = "different_project".into();
+    let mut archive = zip::ZipWriter::new(fs::File::create(&rejected_input)?);
+    archive.start_file("bridge_manifest.json", zip::write::SimpleFileOptions::default())?;
+    archive.write_all(&serde_json::to_vec(&invalid_manifest)?)?;
+    archive.finish()?;
+    let rejected = update::apply(&rejected_input)?;
+    if rejected.ok || rejected_input.exists() || rejected.path.as_ref().map(|p| !PathBuf::from(p).is_file()).unwrap_or(true) {
+        return Err("Rejected package did not enter quarantine".into());
+    }
+    if before_source != bridge_safety::fingerprint(&paths::current_project()?, true)?
+        || before_build != bridge_safety::fingerprint(&paths::current_build()?, false)? {
+        return Err("Preflight rejection mutated the committed source/build".into());
+    }
+    println!("rejection: wrong-project input quarantined; source/build fingerprints unchanged");
 
     let rolled = update::rollback()?;
     if !rolled.ok { return Err(format!("Rollback smoke failed: {}", rolled.detail).into()); }

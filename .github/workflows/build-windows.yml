@@ -2,6 +2,8 @@ name: Build Windows Bridge
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
   push:
     branches:
       - "main"
@@ -12,7 +14,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: crimesim-bridge-windows-main
+  group: crimesim-bridge-windows-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -31,7 +33,7 @@ jobs:
       - name: Cache Rust build
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "src-tauri -> target"
+          workspaces: ". -> target"
 
       - name: Prepare private Godot runtime
         shell: pwsh
@@ -130,12 +132,15 @@ jobs:
           retention-days: 14
 
       - name: Install Tauri CLI
+        if: github.event_name != 'pull_request'
         run: cargo install tauri-cli --version "^2.0" --locked
 
       - name: Build NSIS installer
+        if: github.event_name != 'pull_request'
         run: cargo tauri build
 
       - name: Verify installer and write release manifest
+        if: github.event_name != 'pull_request'
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
@@ -154,6 +159,7 @@ jobs:
           Write-Host "SHA256: $hash"
 
       - name: Upload Windows installer
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: CrimeSim-Bridge-Windows-v0.2.5

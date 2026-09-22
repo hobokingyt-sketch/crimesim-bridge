@@ -9,13 +9,11 @@ Use `python tools/project_memory.py brief --module shell` for a bounded reading 
 Read actual source before changing behavior; this card is a map, not an implementation.
 
 ## Contract
-Keep orchestration and UI separate from state-owning modules. Display verified current-build health separately from the latest attempted update.
+Initialization and repair assemble candidates in staging and enter the same coordinator as update/rollback. Pending journals and recovery errors suppress READY and block mutation, context export and launch requests.
 
-## Known limitation at the audit checkpoint
-Initialization promotes outside the normal transaction journal. Buttons disabling is not a backend workspace lock. Desktop first-run UX is unverified.
-See the matching module entries in `project_control/BACKLOG.json` for acceptance criteria.
+## Known limitation
+Current build health versus latest attempted validation remains HEALTH-1. Desktop UX still needs installed testing; parent-enforced worker deadlines remain SAFE-2.
 
 ## Change route
-Read the direct dependencies' cards before changing shared interfaces. Inspect affected consumers
-as needed; this is not a prohibition on cross-module work. Update this card only when its meaning
-changes. Report tests as executed, failed, skipped, or unavailable; never infer success from filenames.
+Read only affected source and neighbor interfaces. Update decisions and checks with intentional changes.
+See docs/RECOVERY.md for the recovery state machine; do not add bypass promotion helpers.

@@ -1,16 +1,14 @@
 use crate::core::{
     error::{BridgeError, BridgeResult},
-    fsops::{copy_project_tree, copy_tree_all, sha256_bytes, sha256_file},
-    godot, package, paths, project, transaction,
-    types::{ActionResult, OperationKind, TransactionPhase, ValidationReport},
+    fsops::{copy_project_tree, sha256_bytes, sha256_file},
+    package, paths, project, transaction,
+    types::{ActionResult, OperationKind, ValidationReport},
 };
-use std::{fs, path::{Path, PathBuf}};
+use bridge_safety::Kind;
+use std::{fs, path::Path};
 
 pub fn save_validation(report: &ValidationReport) -> BridgeResult<()> {
-    let path = paths::root()?.join(paths::LAST_VALIDATION);
-    if let Some(parent) = path.parent() { fs::create_dir_all(parent)?; }
-    fs::write(path, serde_json::to_vec_pretty(report)?)?;
-    Ok(())
+    crate::core::fsops::atomic_write_json(&paths::root()?.join(paths::LAST_VALIDATION), report)
 }
 
 fn verify_update(zip_path: &Path) -> BridgeResult<(crate::core::types::UpdateManifest, crate::core::types::BridgeProject)> {
@@ -67,134 +65,70 @@ fn apply_to_stage(zip_path: &Path, stage: &Path, manifest: &crate::core::types::
     Ok(())
 }
 
-fn promote_source(stage: &Path, old_revision: u64) -> BridgeResult<()> {
-    let current = paths::current_project()?;
-    let history = paths::history_root()?.join(format!("rev_{:04}", old_revision));
-    if !history.exists() { copy_project_tree(&current, &history)?; }
-    let next = paths::root()?.join("workspace/current_project.__next");
-    let old = paths::root()?.join("workspace/current_project.__old");
-    if next.exists() { fs::remove_dir_all(&next)?; }
-    if old.exists() { fs::remove_dir_all(&old)?; }
-    copy_project_tree(stage, &next)?;
-    fs::rename(&current, &old)?;
-    match fs::rename(&next, &current) {
-        Ok(_) => { fs::remove_dir_all(old)?; Ok(()) }
-        Err(e) => { let _ = fs::rename(&old, &current); Err(BridgeError::Io(e)) }
-    }
-}
-
-fn read_build_revision(path: &Path) -> Option<u64> {
-    fs::read_to_string(path.join("bridge_revision.txt")).ok()?.trim().parse().ok()
-}
-
-pub fn promote_build(candidate: PathBuf, revision: u64) -> BridgeResult<()> {
-    let current = paths::current_build()?;
-    if let Some(old_revision) = read_build_revision(&current) {
-        let snapshot = paths::build_history_root()?.join(format!("rev_{:04}", old_revision));
-        if !snapshot.exists() { copy_tree_all(&current, &snapshot)?; }
-    }
-    let next = paths::builds_root()?.join("current.__next");
-    let old = paths::builds_root()?.join("current.__old");
-    if next.exists() { fs::remove_dir_all(&next)?; }
-    if old.exists() { fs::remove_dir_all(&old)?; }
-    copy_tree_all(&candidate, &next)?;
-    fs::write(next.join("bridge_revision.txt"), revision.to_string())?;
-    if current.exists() { fs::rename(&current, &old)?; }
-    match fs::rename(&next, &current) {
-        Ok(_) => {
-            if old.exists() { fs::remove_dir_all(old)?; }
-            if candidate.exists() { fs::remove_dir_all(candidate)?; }
-            Ok(())
-        }
-        Err(e) => {
-            if old.exists() { let _ = fs::rename(&old, &current); }
-            Err(BridgeError::Io(e))
-        }
-    }
-}
-
-fn apply_inner(zip_path: &Path) -> BridgeResult<ActionResult> {
-    paths::ensure_layout()?;
-    transaction::recover_incomplete()?;
-    let (manifest, current) = verify_update(zip_path)?;
-    let stage = paths::staging_root()?.join(format!("rev_{:04}", manifest.target_revision));
-    let mut journal = transaction::begin(&current.project_id, current.revision, manifest.target_revision, zip_path, &stage)?;
-
-    copy_project_tree(&paths::current_project()?, &stage)?;
-    apply_to_stage(zip_path, &stage, &manifest)?;
-    let mut staged_meta = current.clone();
-    staged_meta.revision = manifest.target_revision;
-    project::write_project(&stage, &staged_meta)?;
-    project::ensure_export_preset(&stage, &staged_meta.export_preset)?;
-    transaction::set_phase(&mut journal, TransactionPhase::Staged, "Candidate source assembled in staging")?;
-
-    let (report, candidate_build) = godot::validate(&stage, &staged_meta)?;
-    save_validation(&report)?;
-    if !report.passed {
-        let detail = if report.errors.is_empty() { "Staged project failed validation".into() } else { report.errors.join(" | ") };
-        if stage.exists() { fs::remove_dir_all(&stage)?; }
-        transaction::clear()?;
-        let quarantined = package::quarantine_update(zip_path, &detail)?;
-        return Ok(ActionResult { ok: false, title: "Update rejected and quarantined".into(), detail, path: Some(quarantined.to_string_lossy().to_string()) });
-    }
-    let candidate_build = candidate_build.ok_or_else(|| BridgeError::Invalid("Validation passed without producing a playable Windows build".into()))?;
-    transaction::set_phase(&mut journal, TransactionPhase::Validated, "All required validation gates passed")?;
-
-    transaction::set_phase(&mut journal, TransactionPhase::SourcePromoting, "Promoting staged source")?;
-    promote_source(&stage, current.revision)?;
-    transaction::set_phase(&mut journal, TransactionPhase::SourcePromoted, "Source promotion complete")?;
-
-    transaction::set_phase(&mut journal, TransactionPhase::BuildPromoting, "Promoting candidate playable build")?;
-    promote_build(candidate_build, staged_meta.revision)?;
-    transaction::set_phase(&mut journal, TransactionPhase::Committed, "Source and playable build committed")?;
-
-    let archived_update = package::archive_applied_update(zip_path, staged_meta.revision).ok();
-    if stage.exists() { fs::remove_dir_all(stage)?; }
-    transaction::clear()?;
-    Ok(ActionResult {
-        ok: true,
-        title: format!("Revision {} applied", staged_meta.revision),
-        detail: match archived_update {
-            Some(path) => format!("{} Update archived as {}.", manifest.summary, path.file_name().unwrap_or_default().to_string_lossy()),
-            None => format!("{} Source/build committed; update archive cleanup will be retried if needed.", manifest.summary),
-        },
-        path: Some(paths::current_project()?.to_string_lossy().to_string())
-    })
-}
-
 pub fn apply(zip_path: &Path) -> BridgeResult<ActionResult> {
-    match apply_inner(zip_path) {
-        Ok(result) => Ok(result),
+    let ws = transaction::open_recovered()?;
+    let original_hash = sha256_file(zip_path)?;
+    let (manifest, current) = match verify_update(zip_path) {
+        Ok(value) => value,
+        Err(error) => {
+            // Preserve terminal-package behavior even when rejection precedes a transaction.
+            // Never archive different bytes downloaded to this filename during verification.
+            if sha256_file(zip_path)? != original_hash {
+                return Err(BridgeError::Invalid("Input changed during verification; no package was moved".into()));
+            }
+            let rejected = package::quarantine_update(zip_path, &error.to_string())?;
+            return Ok(ActionResult { ok: false, title: "Update rejected before staging".into(),
+                detail: error.to_string(), path: Some(rejected.to_string_lossy().into()) });
+        }
+    };
+    let mut target = current.clone();
+    target.revision = manifest.target_revision;
+    let outcome = transaction::execute(&ws, Kind::Update, &target, Some(zip_path), |stage, retained| {
+        let retained = retained.ok_or_else(|| BridgeError::Invalid("Retained update missing".into()))?;
+        // Revalidate the immutable captured pack. Never reread mutable Downloads payloads during apply.
+        let (captured, _) = verify_update(retained)?;
+        if sha256_file(retained)? != original_hash {
+            return Err(BridgeError::Invalid("Update changed while being captured".into()));
+        }
+        copy_project_tree(&ws.source(), stage)?;
+        apply_to_stage(retained, stage, &captured)?;
+        project::write_project(stage, &target)?;
+        Ok(())
+    });
+    match outcome {
+        Ok(()) => Ok(ActionResult { ok: true, title: format!("Revision {} applied", target.revision),
+            detail: manifest.summary, path: Some(ws.source().to_string_lossy().into()) }),
         Err(err) => {
-            let reason = err.to_string();
-            let recovery = transaction::recover_incomplete().ok().flatten();
-            let quarantine = if zip_path.exists() { package::quarantine_update(zip_path, &reason).ok() } else { None };
-            Ok(ActionResult {
-                ok: false,
-                title: "Update failed safely".into(),
-                detail: match recovery { Some(r) => format!("{reason}. {r}"), None => reason },
-                path: quarantine.map(|p| p.to_string_lossy().to_string()),
-            })
+            if ws.journal()?.is_some() { return Err(err); }
+            let quarantined = if zip_path.is_file() && sha256_file(zip_path)? == original_hash {
+                Some(package::quarantine_update(zip_path, &err.to_string())?)
+            } else { None };
+            Ok(ActionResult { ok: false, title: "Update rejected; prior project retained".into(),
+                detail: err.to_string(), path: quarantined.map(|p| p.to_string_lossy().into()) })
         }
     }
 }
 
 pub fn rollback() -> BridgeResult<ActionResult> {
-    transaction::recover_incomplete()?;
-    let current_root = paths::current_project()?;
-    let current = project::read_project(&current_root)?;
-    if current.revision == 0 { return Ok(ActionResult { ok: false, title: "Nothing to roll back".into(), detail: "Revision 0 has no earlier source snapshot.".into(), path: None }); }
-    let target_revision = current.revision - 1;
-    let target = paths::history_root()?.join(format!("rev_{:04}", target_revision));
-    if !target.exists() { return Ok(ActionResult { ok: false, title: "Rollback unavailable".into(), detail: format!("No source snapshot exists for revision {target_revision}."), path: None }); }
-    let rollback_stage = paths::staging_root()?.join(format!("rollback_{:04}", target_revision));
-    copy_project_tree(&target, &rollback_stage)?;
-    let target_meta = project::read_project(&rollback_stage)?;
-    let (report, candidate) = godot::validate(&rollback_stage, &target_meta)?;
-    save_validation(&report)?;
-    if !report.passed { return Ok(ActionResult { ok: false, title: "Rollback rejected".into(), detail: report.errors.join(" | "), path: None }); }
-    promote_source(&rollback_stage, current.revision)?;
-    if let Some(candidate) = candidate { promote_build(candidate, target_revision)?; }
-    if rollback_stage.exists() { fs::remove_dir_all(&rollback_stage)?; }
-    Ok(ActionResult { ok: true, title: format!("Rolled back to revision {target_revision}"), detail: "Source and playable build were rebuilt from the retained snapshot.".into(), path: None })
+    let ws = transaction::open_recovered()?;
+    let current = project::read_project(&ws.source())?;
+    if current.revision == 0 {
+        return Ok(ActionResult { ok: false, title: "Nothing to roll back".into(),
+            detail: "Revision 0 has no earlier source snapshot.".into(), path: None });
+    }
+    let target = match ws.rollback_source()? {
+        Some(p) => p,
+        // Read-only compatibility for pre-Armor history. New history uses transaction identities.
+        None if ws.receipt()?.is_none() => paths::history_root()?.join(format!("rev_{:04}", current.revision - 1)),
+        None => return Err(BridgeError::Invalid("No retained before-image is available".into())),
+    };
+    let meta = project::read_project(&target)?;
+    if meta.project_id != current.project_id || meta.engine_version != current.engine_version {
+        return Err(BridgeError::Invalid("Rollback snapshot identity or engine differs".into()));
+    }
+    transaction::execute(&ws, Kind::Rollback, &meta, None, |stage, _| {
+        copy_project_tree(&target, stage)
+    })?;
+    Ok(ActionResult { ok: true, title: format!("Rolled back to revision {}", meta.revision),
+        detail: "Source and playable build restored through the same journaled validation process.".into(), path: None })
 }

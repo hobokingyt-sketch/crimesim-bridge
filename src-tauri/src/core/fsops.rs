@@ -1,8 +1,7 @@
-use crate::core::error::{BridgeError, BridgeResult};
+use crate::core::error::BridgeResult;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
-use std::{fs, io::{Read, Write}, path::Path};
-use walkdir::WalkDir;
+use std::{fs, io::Read, path::Path};
 
 pub fn sha256_file(path: &Path) -> BridgeResult<String> {
     let mut file = fs::File::open(path)?;
@@ -23,45 +22,22 @@ pub fn sha256_bytes(bytes: &[u8]) -> String {
 }
 
 pub fn atomic_write(path: &Path, bytes: &[u8]) -> BridgeResult<()> {
-    if let Some(parent) = path.parent() { fs::create_dir_all(parent)?; }
-    let tmp = path.with_extension(format!("{}.tmp", path.extension().and_then(|v| v.to_str()).unwrap_or("bridge")));
-    {
-        let mut file = fs::File::create(&tmp)?;
-        file.write_all(bytes)?;
-        file.sync_all()?;
-    }
-    if path.exists() { fs::remove_file(path)?; }
-    fs::rename(tmp, path)?;
+    bridge_safety::durable::write(path, bytes)?;
     Ok(())
 }
 
 pub fn atomic_write_json<T: Serialize>(path: &Path, value: &T) -> BridgeResult<()> {
-    atomic_write(path, &serde_json::to_vec_pretty(value)?)
+    bridge_safety::durable::json(path, value)?;
+    Ok(())
 }
 
 pub fn copy_project_tree(src: &Path, dst: &Path) -> BridgeResult<()> {
-    copy_tree(src, dst, true)
+    bridge_safety::copy_tree(src, dst, true)?;
+    Ok(())
 }
 
 pub fn copy_tree_all(src: &Path, dst: &Path) -> BridgeResult<()> {
-    copy_tree(src, dst, false)
-}
-
-fn copy_tree(src: &Path, dst: &Path, skip_generated: bool) -> BridgeResult<()> {
-    if dst.exists() { fs::remove_dir_all(dst)?; }
-    fs::create_dir_all(dst)?;
-    for entry in WalkDir::new(src).follow_links(false) {
-        let entry = entry?;
-        let rel = entry.path().strip_prefix(src).map_err(|e| BridgeError::Invalid(e.to_string()))?;
-        if rel.as_os_str().is_empty() || (skip_generated && is_generated(rel)) { continue; }
-        let target = dst.join(rel);
-        if entry.file_type().is_dir() {
-            fs::create_dir_all(&target)?;
-        } else if entry.file_type().is_file() {
-            if let Some(parent) = target.parent() { fs::create_dir_all(parent)?; }
-            fs::copy(entry.path(), target)?;
-        }
-    }
+    bridge_safety::copy_tree(src, dst, false)?;
     Ok(())
 }
 

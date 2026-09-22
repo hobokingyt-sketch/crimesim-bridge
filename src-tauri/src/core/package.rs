@@ -21,6 +21,7 @@ const BINARY_EXTENSIONS: &[&str] = &[
 const LARGE_ASSET_LIMIT: u64 = 2 * 1024 * 1024;
 
 pub fn create_chat_pack() -> BridgeResult<PathBuf> {
+    let _workspace_guard = crate::core::transaction::open_recovered()?;
     paths::ensure_layout()?;
     let project_root = paths::current_project()?;
     let meta = project::read_project(&project_root)?;
@@ -160,18 +161,6 @@ pub fn read_change_bytes(zip_path: &Path, relative: &str) -> BridgeResult<Vec<u8
     Ok(bytes)
 }
 
-
-pub fn archive_applied_update(zip_path: &Path, revision: u64) -> BridgeResult<PathBuf> {
-    paths::ensure_layout()?;
-    let name = zip_path.file_name().and_then(|v| v.to_str()).unwrap_or("CrimeSim_Update.zip");
-    let target = paths::applied_root()?.join(format!("rev_{:04}_{}", revision, name));
-    if target.exists() { fs::remove_file(&target)?; }
-    if fs::rename(zip_path, &target).is_err() {
-        fs::copy(zip_path, &target)?;
-        let _ = fs::remove_file(zip_path);
-    }
-    Ok(target)
-}
 
 pub fn quarantine_update(zip_path: &Path, reason: &str) -> BridgeResult<PathBuf> {
     paths::ensure_layout()?;
