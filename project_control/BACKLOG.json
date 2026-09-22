@@ -4,7 +4,9 @@
     {
       "id": "ARMOR-1",
       "priority": "P1",
-      "modules": ["memory"],
+      "modules": [
+        "memory"
+      ],
       "status": "verified",
       "problem": "Fresh-session repository memory and focused handoffs.",
       "done_when": "Memory CLI and mutation tests pass; root startup route and module cards resolve; CI result remains separate.",
@@ -12,12 +14,18 @@
       "evidence_note": "memory entry and scoped pack implementation",
       "verification": {
         "local": "31 behavior tests passed on Linux",
-        "commands": ["python tools/project_memory.py check", "python -m unittest discover -s tools/memory/tests -v"],
+        "commands": [
+          "python tools/project_memory.py check",
+          "python -m unittest discover -s tools/memory/tests -v"
+        ],
         "hosted": {
           "commit": "a0ab0aed5aec404cdaca9311092d29db5d82f84c",
           "run_id": 35693072715,
           "result": "passed",
-          "platforms": ["ubuntu-latest", "windows-latest"],
+          "platforms": [
+            "ubuntu-latest",
+            "windows-latest"
+          ],
           "scope": "Memory structure, behavior tests, frontend syntax; not installer delivery or Rust crash safety"
         }
       }
@@ -25,7 +33,11 @@
     {
       "id": "SAFE-1",
       "priority": "P0",
-      "modules": ["transactions", "foundation", "shell"],
+      "modules": [
+        "transactions",
+        "foundation",
+        "shell"
+      ],
       "status": "verified",
       "problem": "Unify update, initialization and rollback under recoverable promotion.",
       "done_when": "Crash-inject every promotion phase; restart repeatedly; source/build either old or new together; recovery failures block mutations and are visible.",
@@ -33,7 +45,11 @@
       "evidence_note": "Accepted and merged as 6cbf251e3a7029cff99b3403da4cde541168bbd7. Head ef038a8 passed Recovery Safety 35696987602, Project Memory 35696987608 and Windows compile + expanded real Godot E2E 35696987625. Installer deliberately skipped.",
       "verification": {
         "commit": "ef038a893297dfb06b5ba0162da7f5fe28fd363f",
-        "runs": [35696987602, 35696987608, 35696987625],
+        "runs": [
+          35696987602,
+          35696987608,
+          35696987625
+        ],
         "result": "passed",
         "scope": "Recovery matrices, repository memory and Windows real Godot adapters; not installer or power-loss certification."
       }
@@ -41,17 +57,36 @@
     {
       "id": "BUILD-1",
       "priority": "P1",
-      "modules": ["delivery"],
-      "status": "open",
+      "modules": [
+        "delivery"
+      ],
+      "status": "verified",
       "problem": "Finish repeatable installer delivery, including correct workspace output paths.",
       "done_when": "Collect installer from cargo metadata target_directory; verify downloadable artifact and clean Windows install; commit generated Cargo.lock and pin validated tool versions.",
-      "evidence_path": "Cargo.toml",
-      "evidence_note": "workspace root; .github/workflows/build-windows.yml uses src-tauri/target"
+      "evidence_path": "tools/test_installer.ps1",
+      "evidence_note": "BUILD-1 acceptance passed on code head 449eddd in Windows run 35706355760. Downloaded artifact 10685446564 and installer bytes independently match their SHA-256 manifests. The installed probe uses the bundled runtime and a fresh isolated data directory. No claim of exhaustive consumer-PC or save-schema testing.",
+      "verification": {
+        "code_head": "449edddc8339b08a7c2129671e1430441614823f",
+        "compiled_commit": "1185a14563359dbb5c761258c10ab10063e74e5f",
+        "source_tree": "20019f777ebdd35f1462458ecf175b534943a97e",
+        "run_id": 35706355760,
+        "artifact_id": 10685446564,
+        "artifact_name": "CrimeSim-Bridge-Windows-BUILD-1-38",
+        "installer_sha256": "c215efb81f76a049cfc9fb8e61348b387b00794e1382abdbae6cf998f080899d",
+        "artifact_sha256": "d308a36a75e055708cc8ad6f2c7663745b328e1dd0edb804bcfe69216f5b6af1",
+        "result": "passed",
+        "scope": "Windows compile, Godot E2E, production safety suites, installer, native installed frontend/bundled runtime, reinstall/uninstall canary, artifact upload and independently downloaded bytes."
+      }
     },
     {
       "id": "PACK-1",
       "priority": "P1",
-      "modules": ["packages", "project", "shell", "memory"],
+      "modules": [
+        "packages",
+        "project",
+        "shell",
+        "memory"
+      ],
       "status": "open",
       "problem": "Wire task-scoped game memory into the desktop Chat Pack button.",
       "done_when": "Bootstrap a separate game identity; select task/module without file hunting; pack exact source hashes, selected source, dependency cards and explicit omissions; request missing assets instead of guessing.",
@@ -61,23 +96,36 @@
     {
       "id": "SAFE-2",
       "priority": "P0",
-      "modules": ["engine", "transactions", "shell", "delivery"],
+      "modules": [
+        "engine",
+        "transactions",
+        "shell",
+        "delivery"
+      ],
       "status": "verified",
       "problem": "Bound short-lived Godot worker execution, output and descendant lifetime.",
       "done_when": "Silent hangs, output floods, exited launchers with live children, cancellation and supervisor death stop owned Windows worker trees; no promotion on timeout; retained output bounded; all short-lived Godot calls use one gateway; real Windows Godot E2E passes.",
       "evidence_path": "crates/bridge-worker/tests/watchdog.rs",
-      "evidence_note": "Current code ace49dff completed Worker Watchdog, Recovery Safety, Project Memory and full Windows compile/Godot E2E. Windows uses atomically attached kill-on-close jobs, bounded capture and persistent quiescence guard. Linux process groups support normal tests, not Windows parent-death guarantees. No installer or installed-UX acceptance implied.",
+      "evidence_note": "Accepted via PR #3, merge 7e4e25a. Worker, recovery, memory and Windows real Godot E2E passed on ace49dff.",
       "verification": {
         "commit": "ace49dff4395b6388a71e257717127fd6fcfe3d1",
-        "runs": [35700910783, 35700910770, 35700910769, 35700910813],
+        "runs": [
+          35700910783,
+          35700910770,
+          35700910769,
+          35700910813
+        ],
         "result": "passed",
-        "scope": "Production worker lifecycle tests, existing recovery and memory tests, Windows workspace compile and real Godot E2E. Not installer delivery, installed UX, sandbox or power-loss certification."
+        "scope": "Worker lifecycle, recovery, memory and real Godot E2E; not installer delivery."
       }
     },
     {
       "id": "SAFE-3",
       "priority": "P1",
-      "modules": ["packages", "foundation"],
+      "modules": [
+        "packages",
+        "foundation"
+      ],
       "status": "open",
       "problem": "Validate incoming ZIPs against malicious and ambiguous paths.",
       "done_when": "Tests reject oversized/duplicate ZIP entries, overlapping ops, case aliases, reserved Windows names, traversal, links/reparse targets, and changed payloads between verification and apply.",
@@ -87,7 +135,10 @@
     {
       "id": "SAFE-4",
       "priority": "P1",
-      "modules": ["transactions", "project"],
+      "modules": [
+        "transactions",
+        "project"
+      ],
       "status": "open",
       "problem": "Use immutable revision identities and safe save-schema transitions.",
       "done_when": "After rollback, divergent reapply cannot reuse stale source/build snapshots. Never overwrite user saves; old executable cannot silently load incompatible new saves.",
@@ -97,7 +148,9 @@
     {
       "id": "SAFE-5",
       "priority": "P1",
-      "modules": ["engine"],
+      "modules": [
+        "engine"
+      ],
       "status": "open",
       "problem": "Bind runtime execution to the verified manifest and document trust boundary.",
       "done_when": "Require the chosen worker, partner executable and templates in a nonempty manifest; reject extra executable selection. Document that trusted code still executes with local privileges.",
@@ -107,7 +160,10 @@
     {
       "id": "HEALTH-1",
       "priority": "P1",
-      "modules": ["shell", "transactions"],
+      "modules": [
+        "shell",
+        "transactions"
+      ],
       "status": "open",
       "problem": "Separate current playable health from most recent attempted validation.",
       "done_when": "Rejecting a new candidate does not mislabel unchanged current build; show build evidence revision and outstanding recovery separately.",

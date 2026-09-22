@@ -45,6 +45,12 @@
         "python tools/test_worker_wiring.py"
       ],
       "platform": "Windows/Linux + Rust; production worker with fixture executables, not installed UI"
+    },
+    "delivery": {
+      "commands": [
+        "python -m unittest discover -s tools/delivery_tests -v"
+      ],
+      "platform": "Python 3.11+; fixture installer/provenance tests. Native acceptance is Windows CI."
     }
   },
   "modules": [
@@ -185,7 +191,11 @@
         ".github/workflows/recovery.yml",
         "tools/test_safety_wiring.py",
         ".github/workflows/worker-watchdog.yml",
-        "tools/test_worker_wiring.py"
+        "tools/test_worker_wiring.py",
+        "tools/delivery.py",
+        "tools/delivery_tests/*",
+        "tools/test_installer.ps1",
+        "src-tauri/src/install_check.rs"
       ],
       "card": "docs/modules/delivery.md",
       "depends_on": [
@@ -197,7 +207,8 @@
         "recovery",
         "legacy-models",
         "windows",
-        "workers"
+        "workers",
+        "delivery"
       ]
     },
     {

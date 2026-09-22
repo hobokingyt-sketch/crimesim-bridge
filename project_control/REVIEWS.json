@@ -2,9 +2,9 @@
   "schema": 1,
   "modules": {
     "delivery": {
-      "source_sha256": "12e0743585a89170e970c7750b3c46dc9f413734bcb45bc08afca2f3ec104830",
-      "reviewed_at": "2026-09-22T07:25:23.141130+00:00",
-      "note": "SAFE-2 source review: independent fixture-process tests and no unbounded provisioning version call; new hosted tests pending.",
+      "source_sha256": "06991b398bd0bd703abf621e545536ff1e16a79119a4aeb766e5bf7dde0feda0",
+      "reviewed_at": "2026-09-22T08:59:23.206406+00:00",
+      "note": "BUILD-1 source review: inspected installed-app opt-in startup, normal frontend no-op handshake, explicit resource mapping, locked build/provenance, canonical path comparisons and data-retention probe. Executed local delivery and frontend-logic tests. Native installer acceptance is separately required and is not established by this declaration.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "engine": {
@@ -38,9 +38,9 @@
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "shell": {
-      "source_sha256": "980a993e38d6873e85a653dd315ef0a70de00f9f30c4ebd441336f4b8c1b2849",
-      "reviewed_at": "2026-09-22T07:25:22.490346+00:00",
-      "note": "SAFE-2 source review: async command wrappers and pending-worker status; native desktop behavior pending hosted testing.",
+      "source_sha256": "e2d586434a4103d6f86fc89034aca137b1273a0acd88131443eb08cdbae8ad84",
+      "reviewed_at": "2026-09-22T08:59:23.233412+00:00",
+      "note": "BUILD-1 source review: inspected installed-app opt-in startup, normal frontend no-op handshake, explicit resource mapping, locked build/provenance, canonical path comparisons and data-retention probe. Executed local delivery and frontend-logic tests. Native installer acceptance is separately required and is not established by this declaration.",
       "meaning": "Developer review declaration; not automated semantic proof."
     },
     "transactions": {

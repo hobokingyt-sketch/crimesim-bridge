@@ -1,22 +1,21 @@
 # delivery
 
 ## Responsibility
-Build configuration, fixtures, installer delivery and Windows integration proof.
+Build configuration, fixtures, installer delivery and installed Windows integration proof.
 
-## Owned source and checks
-The exact file patterns, dependency routes and checks are in `project_control/MODULES.json`.
-Use `python tools/project_memory.py brief --module delivery` for a bounded reading route.
-Read actual source before changing behavior; this card is a map, not an implementation.
+## Source route
+Use the delivery entry in project_control/MODULES.json. Read docs/INSTALLER.md, the Windows
+workflow, tools/delivery.py, tools/test_installer.ps1 and src-tauri/src/install_check.rs for BUILD-1.
+Keep engine/transaction behavior behind their existing tested interfaces.
 
 ## Contract
-Fast recovery CI runs production-library process-death tests separately from Windows Godot E2E and installer packaging. PR Windows builds validate adapters and E2E without publishing an installer.
+Installer discovery uses Cargo metadata. A downloadable candidate needs exact source/lock/installer
+hashes and a passing native installed-app report. PR runs package and install for acceptance;
+artifacts are not equivalent to signed public releases. Existing recovery and worker suites remain.
+The installed probe is opt-in, creates a new isolated workspace and never resets existing data.
+A real frontend IPC handshake and bundled-resource Godot pipeline must succeed before publication.
 
-## Worker boundary
-Worker Watchdog runs the production supervisor against real fixture processes on Windows and Linux. Windows E2E remains a separate exact-head check. Provisioning no longer invokes Godot outside the watchdog; installer output/toolchain work remains BUILD-1.
-
-## Known limitation
-Installer output-path, clean-install and locked-toolchain work remain BUILD-1. Cargo.lock is not added by this pass.
-
-## Change route
-Read only affected source and neighbor interfaces. Update decisions and checks with intentional changes.
-See docs/RECOVERY.md for the recovery state machine; do not add bypass promotion helpers.
+## Limits
+Fresh hosted-runner app installation is not exhaustive consumer-PC coverage. No code signing,
+self-update, missing-WebView download simulation or game save migration is claimed.
+Use CURRENT.json and exact-run evidence to distinguish implemented from verified.

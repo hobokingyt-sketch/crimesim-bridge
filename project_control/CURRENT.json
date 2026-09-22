@@ -1,29 +1,51 @@
 {
   "schema": 1,
   "checkpoint": "2026-09-22",
-  "task_id": "SAFE-2",
-  "summary": "Project Armor III watchdog accepted: current-code worker, recovery, memory and real Windows Godot E2E workflows completed successfully. This checkpoint update changes documentation only, not runtime source.",
-  "audit_base_commit": "6cbf251e3a7029cff99b3403da4cde541168bbd7",
+  "task_id": "BUILD-1",
+  "summary": "First Windows development installer is verified and downloadable. Continue PACK-1 focused game-context handoffs; do not rebuild the completed recovery/watchdog/installer passes.",
+  "audit_base_commit": "7e4e25a14e59a9c633098a6415a2c4a2cfae76c3",
   "observations": [
     {
-      "commit": "ace49dff4395b6388a71e257717127fd6fcfe3d1",
-      "run_id": 35700910813,
-      "result": "passed",
+      "commit": "449edddc8339b08a7c2129671e1430441614823f",
+      "run_id": 35706355760,
+      "result": "required_steps_passed",
       "passed": [
-        "Windows full workspace compile",
-        "Real Godot end-to-end Bridge smoke",
-        "Repository and caller-routing checks"
+        "Locked Windows compile and real Godot E2E",
+        "Recovery and worker production tests",
+        "NSIS construction",
+        "Installed native frontend IPC and bundled Godot update/rollback/reapply/context pack",
+        "Reinstall/uninstall retained-data canary",
+        "Verified artifact upload and independently downloaded SHA-256"
       ],
-      "not_yet_verified": ["installer delivery", "installed Windows desktop UX"],
-      "note": "Worker Watchdog 35700910783, Recovery Safety 35700910770 and Project Memory 35700910769 also completed successfully on this same code head. Installer steps were deliberately skipped for PR validation."
+      "not_yet_verified": [
+        "Exhaustive consumer Windows installations",
+        "All native UI interactions",
+        "Future game save-schema compatibility"
+      ],
+      "note": "PR #4. Installer was compiled from GitHub test-merge commit 1185a14563359dbb5c761258c10ab10063e74e5f, whose tree matches code head 449eddd."
     }
   ],
-  "next_task_ids": ["BUILD-1", "PACK-1", "SAFE-3"],
-  "limits": [
-    "No sandbox, disk power-loss certification or protection against deliberately escaped hostile processes.",
-    "Godot version/import/tests/export/smoke workers are bounded. Normal gameplay remains untimed.",
-    "Linux process groups support tests and normal deadlines, not recovery of a persisted Windows job.",
-    "Cancellation is a tested worker API, not a desktop Cancel button. No installer delivered by SAFE-2."
+  "delivery": {
+    "code_head": "449edddc8339b08a7c2129671e1430441614823f",
+    "compiled_commit": "1185a14563359dbb5c761258c10ab10063e74e5f",
+    "source_tree": "20019f777ebdd35f1462458ecf175b534943a97e",
+    "run_id": 35706355760,
+    "artifact_id": 10685446564,
+    "artifact_name": "CrimeSim-Bridge-Windows-BUILD-1-38",
+    "installer_sha256": "c215efb81f76a049cfc9fb8e61348b387b00794e1382abdbae6cf998f080899d",
+    "artifact_sha256": "d308a36a75e055708cc8ad6f2c7663745b328e1dd0edb804bcfe69216f5b6af1",
+    "result": "passed",
+    "scope": "Windows compile, Godot E2E, production safety suites, installer, native installed frontend/bundled runtime, reinstall/uninstall canary, artifact upload and independently downloaded bytes."
+  },
+  "next_task_ids": [
+    "PACK-1",
+    "SAFE-3",
+    "HEALTH-1"
   ],
-  "handoff": "Read current HEAD and AGENTS.md. SAFE-1 and SAFE-2 are accepted; check PR #3 merge status rather than rebuilding them. Next task BUILD-1: use the delivery module, fix installer output discovery from cargo metadata, validate the artifact and clean-install behavior. Keep PACK-1 focused game-context handoffs distinct from Bridge development. Never replace current source with the earlier partial watchdog trees or old ZIPs."
+  "limits": [
+    "Unsigned development installer; no code-signing certificate or self-updater.",
+    "Fresh app directory on hosted Windows; not a pristine consumer PC or exhaustive GUI/save migration certification.",
+    "The managed game is still a minimal pipeline bootstrap, not the criminal simulation."
+  ],
+  "handoff": "Fetch current HEAD and PR #4 status. Installer artifact identity is above; later checkpoint-only changes do not imply a new executable. The next source route is packages/project/shell for PACK-1. Keep Bridge and game memory separate."
 }

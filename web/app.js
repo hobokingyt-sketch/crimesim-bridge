@@ -88,5 +88,15 @@
   $('rollback').addEventListener('click', () => run('rollback'));
   $('bootstrap').addEventListener('click', () => run('initialize_pipeline'));
   $('refreshStatus').addEventListener('click', refresh);
-  refresh().catch((e) => renderAction({ title: 'Status error', detail: String(e) }));
+  refresh().then(() => {
+    if (!invoke) return;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const controlsReady = ['createPack', 'applyUpdate', 'playCurrent', 'bootstrap'].every((id) => {
+        const element = $(id);
+        return element && element.getBoundingClientRect().width > 0 && getComputedStyle(element).visibility !== 'hidden';
+      });
+      // A no-op during normal use; the packaged acceptance mode verifies real WebView IPC.
+      invoke('frontend_ready', { controlsReady }).catch((error) => renderAction({ title: 'Startup check failed', detail: String(error) }));
+    }));
+  }).catch((e) => renderAction({ title: 'Status error', detail: String(e) }));
 })();

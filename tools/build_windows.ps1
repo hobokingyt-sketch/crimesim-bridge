@@ -1,10 +1,9 @@
 $ErrorActionPreference = "Stop"
-Write-Host "CrimeSim Bridge v0.25 preflight"
+$PSNativeCommandUseErrorActionPreference = $true
 python tools/validate_repo.py
-python tools/test_transaction_model.py
-python tools/test_crash_recovery_model.py
-python tools/test_runtime_manifest_model.py
-python tools/test_pipeline_contract.py
-node --check web/app.js
-cargo check --workspace
-cargo tauri build
+python -m unittest discover -s tools/delivery_tests -v
+python tools/test_safety_wiring.py
+python tools/test_worker_wiring.py
+cargo check --workspace --locked
+cargo tauri build --bundles nsis -- --locked
+# Installer acceptance/provenance is orchestrated by .github/workflows/build-windows.yml.
