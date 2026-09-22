@@ -18,7 +18,8 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
-    "resources": ["resources/godot/**/*"]
+    "targets": [
+      "nsis"
+    ]
   }
 }
