@@ -36,7 +36,7 @@ class DeliveryTests(unittest.TestCase):
         return delivery.assemble(self.metadata, self.report, self.provenance, self.lock, self.output)
 
     def test_metadata_drives_output_path(self):
-        self.assertEqual(delivery.discover(self.metadata), self.installer)
+        self.assertEqual(delivery.discover(self.metadata), self.installer.resolve())
 
     def test_relative_metadata_rejected(self):
         self.metadata['target_directory'] = 'target'

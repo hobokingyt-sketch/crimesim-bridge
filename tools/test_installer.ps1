@@ -39,9 +39,8 @@ try {
         throw "Installed acceptance failed: $($report.detail)"
     }
     # Provenance must come from the installed app, not another executable found on PATH.
-    if ([System.IO.Path]::GetFullPath($report.executable) -ne [System.IO.Path]::GetFullPath($app)) {
-        throw 'The tested executable was not the installed application'
-    }
+    # File identity handles Windows short-path aliases; textual path equality does not.
+    python -c "import os,sys; sys.exit(0 if os.path.samefile(sys.argv[1], sys.argv[2]) else 'The tested executable was not the installed application')" $report.executable $app
     $canary = Join-Path $dataDir 'saves/install-canary.txt'
     $before = (Get-FileHash -LiteralPath $canary -Algorithm SHA256).Hash
     Run-Bounded $installer "/S /D=$installDir" 180 $root
