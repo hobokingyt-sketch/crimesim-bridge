@@ -2,9 +2,26 @@
   "schema": 1,
   "checkpoint": "2026-09-22",
   "task_id": "PACK-1",
-  "summary": "Scoped managed-game handoffs implemented. Verify current-head Rust exporter, frontend, Godot and installed export checks before acceptance. Do not redo completed Armor or BUILD-1.",
+  "summary": "PACK-1 implemented; initial Windows compile passed and 21/22 exporter tests passed. Corrected a cache test false positive (project.godot is not the .godot directory); latest-head tests and installed acceptance remain required.",
   "audit_base_commit": "cb4234582a8407bd17dbb5dd8e735a66a48d0eac",
-  "observations": [],
+  "observations": [
+    {
+      "commit": "a33ec4c76d3f5254e09ec23c0a98a0e05ce5b539",
+      "run_id": 35712872315,
+      "result": "failed_exporter_test",
+      "passed": [
+        "Windows full workspace compile",
+        "21 exporter tests",
+        "Repository/model and 14 delivery tests"
+      ],
+      "not_yet_verified": [
+        "Corrected path assertion",
+        "real Godot E2E",
+        "new installed handoff/exporter artifact"
+      ],
+      "note": "Test used a substring .godot, which also matched project.godot. Corrected to inspect path entries and check both excluded payloads and retained project.godot."
+    }
+  ],
   "delivery": {
     "code_head": "449edddc8339b08a7c2129671e1430441614823f",
     "compiled_commit": "1185a14563359dbb5c761258c10ab10063e74e5f",

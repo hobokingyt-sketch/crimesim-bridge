@@ -91,8 +91,15 @@ fn names(pack: &Pack) -> Vec<String> {
 }
 #[test] fn saves_caches_and_sensitive_filenames_never_enter_inventory() {
     let f=Fixture::new();for p in ["saves/player.json",".godot/cache","ui/.env","ui/credentials.json"] { f.write(p,b"do-not-export"); }
-    let p=f.export(&f.request("ui")).unwrap();let inventory=String::from_utf8(read(&p,"inventory.json")).unwrap();
-    assert!(!inventory.contains("credentials"));assert!(!inventory.contains("saves/"));assert!(!inventory.contains(".env"));assert!(!inventory.contains(".godot"));
+    let p=f.export(&f.request("ui")).unwrap();
+    let entries: Vec<Entry>=serde_json::from_slice(&read(&p,"inventory.json")).unwrap();
+    let payload_names=names(&p);
+    for forbidden in ["saves/player.json",".godot/cache","ui/.env","ui/credentials.json"] {
+        assert!(!entries.iter().any(|e| e.path==forbidden),"Excluded inventory path: {forbidden}");
+        assert!(!payload_names.contains(&format!("source/{forbidden}")),"Excluded payload path: {forbidden}");
+    }
+    assert!(!entries.iter().any(|e|e.path.split('/').any(|part|part==".godot")));
+    assert!(entries.iter().any(|e|e.path=="project.godot" && e.included));
 }
 #[test] fn ordinary_game_secrecy_filename_is_not_a_secret_credential() {
     let f=Fixture::new();f.write("ui/secretive.gd",b"extends Node\n");let p=f.export(&f.request("ui")).unwrap();assert!(names(&p).contains(&"source/ui/secretive.gd".into()));
