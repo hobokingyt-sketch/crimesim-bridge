@@ -52,8 +52,8 @@ jobs:
           Expand-Archive -Path $godotZip -DestinationPath (Join-Path $temp "godot") -Force
           Expand-Archive -Path $templatesZip -DestinationPath (Join-Path $temp "templates") -Force
 
-          $godotExe = Get-ChildItem (Join-Path $temp "godot") -Filter "Godot*_win64.exe" -Recurse | Select-Object -First 1
-          if (-not $godotExe) { throw "Godot executable not found in official archive" }
+          $godotExe = Get-ChildItem (Join-Path $temp "godot") -Filter "Godot*_win64_console.exe" -Recurse | Select-Object -First 1
+          if (-not $godotExe) { throw "Godot console executable not found in official archive" }
           Copy-Item $godotExe.FullName (Join-Path $runtime "godot.exe") -Force
           New-Item -ItemType File -Force -Path (Join-Path $runtime "_sc_") | Out-Null
 
