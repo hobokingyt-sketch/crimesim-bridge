@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "CrimeSim Bridge",
+  "version": "0.2.5",
+  "identifier": "com.crimesim.bridge",
+  "build": {
+    "frontendDist": "../web"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "CrimeSim Bridge",
+        "width": 900,
+        "height": 600,
+        "resizable": true
+      }
+    ]
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "resources": ["resources/godot/**/*"]
+  }
+}
