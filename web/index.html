@@ -1,6 +1,74 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CrimeSim Bridge</title>
-<style>body{font-family:system-ui;background:#111;color:#eee;margin:0;padding:48px}main{max-width:760px;margin:auto}h1{font-size:32px}p{color:#aaa}.ok{padding:16px;border:1px solid #333;border-radius:12px;background:#181818}</style></head>
-<body><main><h1>CrimeSim Bridge</h1><div class="ok"><strong>Windows pipeline bootstrap</strong><p>Tauri shell is running. Hardened project/update controls will be layered onto this verified runtime.</p></div></main></body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrimeSim Bridge</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">PROJECT PIPELINE</p>
+        <h1>CrimeSim Bridge</h1>
+        <p class="subtitle">Chat package in. Verified Godot project out.</p>
+      </div>
+      <div id="healthPill" class="pill muted">CHECKING</div>
+    </header>
+
+    <section class="status-grid" aria-label="Project status">
+      <article><span>Source revision</span><strong id="sourceRevision">—</strong></article>
+      <article><span>Playable revision</span><strong id="playableRevision">—</strong></article>
+      <article><span>Godot</span><strong id="godotStatus">—</strong></article>
+      <article><span>Runtime integrity</span><strong id="runtimeIntegrity">—</strong></article>
+      <article><span>Latest update</span><strong id="latestUpdate">—</strong></article>
+      <article><span>Recovery</span><strong id="recoveryStatus">None</strong></article>
+    </section>
+
+    <section class="primary-actions">
+      <button id="createPack" class="primary">Create Chat Pack</button>
+      <button id="applyUpdate" class="primary">Apply Latest Update &amp; Play</button>
+      <button id="playCurrent">Play Current</button>
+    </section>
+
+    <section class="workspace">
+      <article class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">VALIDATION</p>
+            <h2>Last pipeline run</h2>
+          </div>
+          <button id="refreshStatus" class="quiet">Refresh</button>
+        </div>
+        <div id="validationList" class="validation-list">
+          <p class="empty">No validation has run yet.</p>
+        </div>
+        <div id="validationErrors" class="validation-errors" hidden></div>
+      </article>
+
+      <article class="panel compact">
+        <p class="eyebrow">RECOVERY</p>
+        <h2>Safe controls</h2>
+        <p class="muted-copy">Updates stage first. The live source is promoted only after required checks pass.</p>
+        <div class="stacked-actions">
+          <button id="scanUpdate">Scan Downloads</button>
+          <button id="rollback" class="danger">Rollback Source</button>
+          <button id="bootstrap" class="quiet">Initialize Pipeline</button>
+        </div>
+      </article>
+    </section>
+
+    <section class="activity-panel">
+      <div>
+        <p class="eyebrow">ACTIVITY</p>
+        <h2 id="activityTitle">Ready</h2>
+        <p id="activityDetail">The Bridge has not performed an action yet.</p>
+      </div>
+      <code id="activityPath"></code>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
 </html>
