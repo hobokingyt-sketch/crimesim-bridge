@@ -59,10 +59,16 @@ jobs:
           Copy-Item $debug.FullName (Join-Path $templateDir "windows_debug_x86_64.exe")
           Copy-Item $release.FullName (Join-Path $templateDir "windows_release_x86_64.exe")
 
-          $reported = & (Join-Path $runtime "godot.exe") --version
+          $godotExe = Join-Path $runtime "godot.exe"
+          $versionOut = Join-Path $download "godot-version.txt"
+          $versionErr = Join-Path $download "godot-version.err.txt"
+          $proc = Start-Process -FilePath $godotExe -ArgumentList @("--headless", "--version") -NoNewWindow -Wait -PassThru -RedirectStandardOutput $versionOut -RedirectStandardError $versionErr
+          if ($proc.ExitCode -ne 0) { throw "Godot --version failed with exit code $($proc.ExitCode)" }
+          $reported = (Get-Content $versionOut -Raw).Trim()
+          if (-not $reported) { $reported = (Get-Content $versionErr -Raw).Trim() }
           Write-Host "Godot reports: $reported"
           if (-not ($reported -like "$version*")) { throw "Godot version mismatch: $reported" }
-          "GODOT_EXE=$(Join-Path $runtime 'godot.exe')" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "GODOT_EXE=$godotExe" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Create and export real Godot smoke project
         shell: pwsh
