@@ -1,21 +1,23 @@
 # engine
 
 ## Responsibility
-Private Godot installation, process invocation, validation, export and launch.
+Private Godot installation, bounded worker execution, validation, export and launch.
 
 ## Owned source and checks
-The exact file patterns, dependency routes and checks are in `project_control/MODULES.json`.
-Use `python tools/project_memory.py brief --module engine` for a bounded reading route.
-Read actual source before changing behavior; this card is a map, not an implementation.
+Use the engine entry in project_control/MODULES.json and `brief --module engine`.
+Read actual source; this card is a route, not a replacement for code.
 
 ## Contract
-Keep the official Windows executable/console-wrapper pair together. Hash verification is integrity checking, not proof of authorship or sandboxing.
+The official Windows engine/wrapper pair stays together. All build/version/smoke workers
+use core/worker.rs and bridge-worker. Parent deadlines, bounded captures and named jobs
+cover children and permit startup cleanup before source recovery. Normal Play is separate.
+See docs/WORKERS.md for budgets, failure behavior and platform boundaries.
 
-## Known limitation at the audit checkpoint
-Command::output has no parent-enforced deadline. --quit-after limits engine iterations, not a hung process. Worker discovery is not bound to a required manifest entry.
-See the matching module entries in `project_control/BACKLOG.json` for acceptance criteria.
+## Remaining limitations
+Hashes are integrity checks, not authorship/sandboxing. Binding the chosen worker and
+required partner/templates to the manifest is still SAFE-5. Linux test support does not
+claim Windows Job Object parent-death guarantees. Installed UX remains unverified.
 
 ## Change route
-Read the direct dependencies' cards before changing shared interfaces. Inspect affected consumers
-as needed; this is not a prohibition on cross-module work. Update this card only when its meaning
-changes. Report tests as executed, failed, skipped, or unavailable; never infer success from filenames.
+Inspect foundation, transactions and shell consumers when changing worker/recovery contracts.
+Update tests and policy deliberately; module boundaries do not prohibit cross-module work.

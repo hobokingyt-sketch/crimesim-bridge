@@ -30,3 +30,5 @@ zip = { version = "2", default-features = false, features = ["deflate"] }
 walkdir = "2"
 directories = "6"
 chrono = { version = "0.4", features = ["serde"] }
+
+bridge-worker = { path = "../crates/bridge-worker" }

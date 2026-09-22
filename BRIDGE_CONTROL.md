@@ -29,9 +29,12 @@ Make chat-directed development of a normal multi-file Godot project behave like 
 17. A playable build is not valid merely because export succeeded; its exported executable must launch successfully in a bounded smoke run.
 18. CI must exercise the real transaction pipeline with a real Godot runtime before packaging a Bridge release.
 
+19. Short-lived Godot workers have parent-enforced deadlines and bounded output; ordinary gameplay does not.
+20. Confirm that owned worker descendants have stopped before recovering or modifying staging. Retain unresolved worker guards and report cleanup required.
+
 ## Current focus
 
-v0.25 First Real Windows Pipeline: execute the complete Bridge transaction against real Godot 4.7.2 on a Windows runner before producing an installer.
+SAFE-2 worker deadlines and output bounds. See project_control/CURRENT.json for exact verification state and next tasks.
 
 ## Deferred
 

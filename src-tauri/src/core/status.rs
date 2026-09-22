@@ -1,4 +1,4 @@
-use crate::core::{error::BridgeResult, package, paths, project, runtime, types::{BridgeStatus, ValidationReport}};
+use crate::core::{error::BridgeResult, package, paths, project, runtime, worker, types::{BridgeStatus, ValidationReport}};
 use std::fs;
 
 pub fn get() -> BridgeResult<BridgeStatus> {
@@ -18,8 +18,10 @@ pub fn get() -> BridgeResult<BridgeStatus> {
         Err(err) => (false, format!("integrity check error: {err}")),
     };
     let last_recovery = fs::read_to_string(paths::root()?.join(paths::LAST_RECOVERY)).ok();
-    let recovery_required = paths::transaction_journal()?.exists();
-    let recovery_error = fs::read_to_string(paths::root()?.join(paths::RECOVERY_ERROR)).ok();
+    let worker_pending = paths::root()?.join(worker::PENDING_WORKER).exists();
+    let recovery_required = paths::transaction_journal()?.exists() || worker_pending;
+    let recovery_error = fs::read_to_string(paths::root()?.join(paths::RECOVERY_ERROR)).ok()
+        .or_else(|| worker_pending.then(|| "Worker cleanup must complete before project recovery.".into()));
     let source_revision = meta.as_ref().map(|m| m.revision);
     let validation_ok = last_validation.as_ref().map(|r| r.passed).unwrap_or(false);
     let pipeline_ready = !recovery_required && recovery_error.is_none() && project_present

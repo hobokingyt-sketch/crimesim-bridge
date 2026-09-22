@@ -4,21 +4,29 @@ use core::{package, pipeline, play, runtime, status, transaction, types::{Action
 
 fn user_error<E: std::fmt::Display>(e: E) -> String { e.to_string() }
 
-#[tauri::command]
-fn get_status() -> Result<BridgeStatus, String> { status::get().map_err(user_error) }
+async fn background<T: Send + 'static>(work: impl FnOnce() -> Result<T, String> + Send + 'static) -> Result<T, String> {
+    tauri::async_runtime::spawn_blocking(work).await.map_err(|e| format!("Bridge task failed: {e}"))?
+}
+
 
 #[tauri::command]
-fn initialize_pipeline() -> Result<ActionResult, String> {
-    pipeline::initialize().map_err(user_error)
+async fn get_status() -> Result<BridgeStatus, String> {
+    background(|| status::get().map_err(user_error)).await
 }
 
 #[tauri::command]
-fn bootstrap_demo_project() -> Result<ActionResult, String> {
-    pipeline::initialize().map_err(user_error)
+async fn initialize_pipeline() -> Result<ActionResult, String> {
+    background(|| pipeline::initialize().map_err(user_error)).await
 }
 
 #[tauri::command]
-fn create_chat_pack() -> Result<ActionResult, String> {
+async fn bootstrap_demo_project() -> Result<ActionResult, String> {
+    background(|| pipeline::initialize().map_err(user_error)).await
+}
+
+#[tauri::command]
+async fn create_chat_pack() -> Result<ActionResult, String> {
+    background(|| {
     let path = package::create_chat_pack().map_err(user_error)?;
     Ok(ActionResult {
         ok: true,
@@ -26,10 +34,13 @@ fn create_chat_pack() -> Result<ActionResult, String> {
         detail: "Upload this one ZIP to ChatGPT. It represents the normal multi-file project without flattening it.".into(),
         path: Some(path.to_string_lossy().to_string()),
     })
+
+    }).await
 }
 
 #[tauri::command]
-fn scan_latest_update() -> Result<ActionResult, String> {
+async fn scan_latest_update() -> Result<ActionResult, String> {
+    background(|| {
     let latest = package::latest_update_pack().map_err(user_error)?;
     Ok(match latest {
         Some(path) => ActionResult {
@@ -45,17 +56,23 @@ fn scan_latest_update() -> Result<ActionResult, String> {
             path: None,
         },
     })
+
+    }).await
 }
 
 #[tauri::command]
-fn apply_latest_update() -> Result<ActionResult, String> {
+async fn apply_latest_update() -> Result<ActionResult, String> {
+    background(|| {
     let latest = package::latest_update_pack().map_err(user_error)?
         .ok_or_else(|| "No CrimeSim update pack found in Downloads".to_string())?;
     update::apply(&latest).map_err(user_error)
+
+    }).await
 }
 
 #[tauri::command]
-fn apply_latest_update_and_play() -> Result<ActionResult, String> {
+async fn apply_latest_update_and_play() -> Result<ActionResult, String> {
+    background(|| {
     let latest = package::latest_update_pack().map_err(user_error)?
         .ok_or_else(|| "No CrimeSim update pack found in Downloads".to_string())?;
     let applied = update::apply(&latest).map_err(user_error)?;
@@ -68,13 +85,19 @@ fn apply_latest_update_and_play() -> Result<ActionResult, String> {
         detail: format!("{} The promoted playable build was launched.", applied.detail),
         path: launched.path,
     })
+
+    }).await
 }
 
 #[tauri::command]
-fn rollback() -> Result<ActionResult, String> { update::rollback().map_err(user_error) }
+async fn rollback() -> Result<ActionResult, String> {
+    background(|| update::rollback().map_err(user_error)).await
+}
 
 #[tauri::command]
-fn play_current() -> Result<ActionResult, String> { play::current().map_err(user_error) }
+async fn play_current() -> Result<ActionResult, String> {
+    background(|| play::current().map_err(user_error)).await
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

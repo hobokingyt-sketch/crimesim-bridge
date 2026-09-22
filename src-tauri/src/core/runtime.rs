@@ -1,6 +1,6 @@
-use crate::core::{error::{BridgeError, BridgeResult}, fsops::sha256_file, paths};
+use crate::core::{error::{BridgeError, BridgeResult}, fsops::sha256_file, paths, worker};
 use serde::Deserialize;
-use std::{fs, path::Path, process::Command};
+use std::{fs, path::Path};
 use tauri::Manager;
 use walkdir::WalkDir;
 
@@ -71,11 +71,12 @@ pub fn engine_version() -> BridgeResult<String> {
     if !godot.is_file() {
         return Err(BridgeError::Invalid("Godot executable is missing".into()));
     }
-    let output = Command::new(&godot).arg("--version").output()?;
-    if !output.status.success() {
-        return Err(BridgeError::Invalid(format!("Godot --version failed with status {}", output.status)));
+    let output = worker::run(worker::Phase::Version, &godot, &paths::runtime_root()?,
+        &["--version"], "godot-version.log")?;
+    if !output.success() {
+        return Err(BridgeError::Invalid(format!("Godot --version failed: {}", output.summary())));
     }
-    let text = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let text = output.stdout.text().trim().to_string();
     if text.is_empty() {
         return Err(BridgeError::Invalid("Godot --version returned no version string".into()));
     }

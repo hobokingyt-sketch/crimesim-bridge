@@ -38,6 +38,13 @@
         "python tools/test_safety_wiring.py"
       ],
       "platform": "Rust 1.89+; actual coordinator process-death tests on Windows/Linux, fixture build bytes; Godot E2E remains separate"
+    },
+    "workers": {
+      "commands": [
+        "cargo test -p bridge-worker --features fixture-processes -- --nocapture",
+        "python tools/test_worker_wiring.py"
+      ],
+      "platform": "Windows/Linux + Rust; production worker with fixture executables, not installed UI"
     }
   },
   "modules": [
@@ -115,7 +122,9 @@
       "owns": [
         "src-tauri/src/core/godot.rs",
         "src-tauri/src/core/runtime.rs",
-        "src-tauri/src/core/play.rs"
+        "src-tauri/src/core/play.rs",
+        "src-tauri/src/core/worker.rs",
+        "crates/bridge-worker/*"
       ],
       "card": "docs/modules/engine.md",
       "depends_on": [
@@ -124,7 +133,8 @@
       ],
       "checks": [
         "legacy-models",
-        "windows"
+        "windows",
+        "workers"
       ]
     },
     {
@@ -173,7 +183,9 @@
         "fixtures/*",
         "src-tauri/src/bin/bridge_pipeline_smoke.rs",
         ".github/workflows/recovery.yml",
-        "tools/test_safety_wiring.py"
+        "tools/test_safety_wiring.py",
+        ".github/workflows/worker-watchdog.yml",
+        "tools/test_worker_wiring.py"
       ],
       "card": "docs/modules/delivery.md",
       "depends_on": [
@@ -184,7 +196,8 @@
       "checks": [
         "recovery",
         "legacy-models",
-        "windows"
+        "windows",
+        "workers"
       ]
     },
     {
