@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "items": [
+    {
+      "id": "ARMOR-1",
+      "priority": "P1",
+      "modules": [
+        "memory"
+      ],
+      "status": "implemented_pending_ci",
+      "problem": "Fresh-session repository memory and focused handoffs.",
+      "done_when": "Memory CLI and mutation tests pass; root startup route and module cards resolve; CI result remains separate.",
+      "evidence_path": "tools/project_memory.py",
+      "evidence_note": "memory entry and scoped pack implementation",
+      "verification": {
+        "local": "31 behavior tests passed on Linux; hosted matrix pending",
+        "commands": [
+          "python tools/project_memory.py check",
+          "python -m unittest discover -s tools/memory/tests -v"
+        ]
+      }
+    },
+    {
+      "id": "SAFE-1",
+      "priority": "P0",
+      "modules": [
+        "transactions",
+        "foundation",
+        "shell"
+      ],
+      "status": "open",
+      "problem": "Unify update, initialization and rollback under recoverable promotion.",
+      "done_when": "Crash-inject every promotion phase; restart repeatedly; source/build either old or new together; recovery failures block mutations and are visible.",
+      "evidence_path": "src-tauri/src/core/update.rs",
+      "evidence_note": "rollback; apply; promote_source; promote_build"
+    },
+    {
+      "id": "BUILD-1",
+      "priority": "P1",
+      "modules": [
+        "delivery"
+      ],
+      "status": "open",
+      "problem": "Finish repeatable installer delivery, including correct workspace output paths.",
+      "done_when": "Collect installer from cargo metadata target_directory; verify downloadable artifact and clean Windows install; commit generated Cargo.lock and pin validated tool versions.",
+      "evidence_path": "Cargo.toml",
+      "evidence_note": "workspace root; .github/workflows/build-windows.yml uses src-tauri/target"
+    },
+    {
+      "id": "PACK-1",
+      "priority": "P1",
+      "modules": [
+        "packages",
+        "project",
+        "shell",
+        "memory"
+      ],
+      "status": "open",
+      "problem": "Wire task-scoped game memory into the desktop Chat Pack button.",
+      "done_when": "Bootstrap a separate game identity; select task/module without file hunting; pack exact source hashes, selected source, dependency cards and explicit omissions; request missing assets instead of guessing.",
+      "evidence_path": "src-tauri/src/core/package.rs",
+      "evidence_note": "create_chat_pack currently walks the whole managed project"
+    },
+    {
+      "id": "SAFE-2",
+      "priority": "P0",
+      "modules": [
+        "engine",
+        "foundation"
+      ],
+      "status": "open",
+      "problem": "Bound worker execution and serialize workspace writers.",
+      "done_when": "Parent-enforced timeouts terminate worker trees; capture bounded logs; no overlapping initialize/apply/rollback/context snapshot; simulate crash and lock contention.",
+      "evidence_path": "src-tauri/src/core/godot.rs",
+      "evidence_note": "run_godot; run_exported_smoke use Command::output"
+    },
+    {
+      "id": "SAFE-3",
+      "priority": "P1",
+      "modules": [
+        "packages",
+        "foundation"
+      ],
+      "status": "open",
+      "problem": "Validate incoming ZIPs against malicious and ambiguous paths.",
+      "done_when": "Tests reject oversized/duplicate ZIP entries, overlapping ops, case aliases, reserved Windows names, traversal, links/reparse targets, and changed payloads between verification and apply.",
+      "evidence_path": "src-tauri/src/core/package.rs",
+      "evidence_note": "read_update_manifest; read_change_bytes; latest_update_pack"
+    },
+    {
+      "id": "SAFE-4",
+      "priority": "P1",
+      "modules": [
+        "transactions",
+        "project"
+      ],
+      "status": "open",
+      "problem": "Use immutable revision identities and safe save-schema transitions.",
+      "done_when": "After rollback, divergent reapply cannot reuse stale source/build snapshots. Never overwrite user saves; old executable cannot silently load incompatible new saves.",
+      "evidence_path": "src-tauri/src/core/update.rs",
+      "evidence_note": "history snapshots keyed only by integer revision; rollback decrements"
+    },
+    {
+      "id": "SAFE-5",
+      "priority": "P1",
+      "modules": [
+        "engine"
+      ],
+      "status": "open",
+      "problem": "Bind runtime execution to the verified manifest and document trust boundary.",
+      "done_when": "Require the chosen worker, partner executable and templates in a nonempty manifest; reject extra executable selection. Document that trusted code still executes with local privileges.",
+      "evidence_path": "src-tauri/src/core/runtime.rs",
+      "evidence_note": "integrity_at validates listed entries but worker_at selects by filename"
+    },
+    {
+      "id": "HEALTH-1",
+      "priority": "P1",
+      "modules": [
+        "shell",
+        "transactions"
+      ],
+      "status": "open",
+      "problem": "Separate current playable health from most recent attempted validation.",
+      "done_when": "Rejecting a new candidate does not mislabel unchanged current build; show build evidence revision and outstanding recovery separately.",
+      "evidence_path": "src-tauri/src/core/status.rs",
+      "evidence_note": "pipeline_ready reads last_validation.passed without matching report revision"
+    }
+  ]
+}

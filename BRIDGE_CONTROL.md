@@ -1,5 +1,9 @@
 # CrimeSim Bridge control file
 
+> Project Armor I: begin at `AGENTS.md` and `project_control/CURRENT.json`.
+> This document describes design intent and historical implementation, not blanket proof of safety.
+> Open gaps and acceptance criteria are tracked in `project_control/BACKLOG.json`.
+
 ## Mission
 
 Make chat-directed development of a normal multi-file Godot project behave like a safe one-button workflow for a non-coder.

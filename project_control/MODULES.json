@@ -1,0 +1,202 @@
+{
+  "schema": 1,
+  "checks": {
+    "memory": {
+      "commands": [
+        "python tools/project_memory.py check",
+        "python -m unittest discover -s tools/memory/tests -v"
+      ],
+      "platform": "Python 3.11+; no third-party packages"
+    },
+    "javascript": {
+      "commands": [
+        "node --check web/app.js"
+      ],
+      "platform": "Node.js; syntax only, not desktop execution"
+    },
+    "legacy-models": {
+      "commands": [
+        "python tools/validate_repo.py",
+        "python tools/test_transaction_model.py",
+        "python tools/test_crash_recovery_model.py",
+        "python tools/test_runtime_manifest_model.py",
+        "python tools/test_pipeline_contract.py"
+      ],
+      "platform": "Python + Node; model/static checks, not full Rust behavior"
+    },
+    "windows": {
+      "commands": [
+        "cargo check --workspace",
+        "cargo run --bin bridge_pipeline_smoke",
+        "cargo tauri build"
+      ],
+      "platform": "Windows + Rust + Tauri + verified private Godot pair/templates; isolated CRIMESIM_BRIDGE_* test paths required"
+    }
+  },
+  "modules": [
+    {
+      "id": "foundation",
+      "purpose": "Shared types, paths, hashes and filesystem helpers.",
+      "owns": [
+        "src-tauri/src/core/error.rs",
+        "src-tauri/src/core/fsops.rs",
+        "src-tauri/src/core/paths.rs",
+        "src-tauri/src/core/types.rs"
+      ],
+      "card": "docs/modules/foundation.md",
+      "depends_on": [],
+      "checks": [
+        "legacy-models",
+        "windows"
+      ]
+    },
+    {
+      "id": "project",
+      "purpose": "Managed game metadata and bootstrap source/export presets.",
+      "owns": [
+        "src-tauri/src/core/project.rs"
+      ],
+      "card": "docs/modules/project.md",
+      "depends_on": [
+        "foundation"
+      ],
+      "checks": [
+        "legacy-models",
+        "windows"
+      ]
+    },
+    {
+      "id": "packages",
+      "purpose": "Game context ZIPs, update manifests, payload reads, incoming and terminal archives.",
+      "owns": [
+        "src-tauri/src/core/package.rs"
+      ],
+      "card": "docs/modules/packages.md",
+      "depends_on": [
+        "foundation",
+        "project"
+      ],
+      "checks": [
+        "legacy-models",
+        "windows"
+      ]
+    },
+    {
+      "id": "transactions",
+      "purpose": "Candidate updates, revision promotion, journaling and recovery.",
+      "owns": [
+        "src-tauri/src/core/update.rs",
+        "src-tauri/src/core/transaction.rs"
+      ],
+      "card": "docs/modules/transactions.md",
+      "depends_on": [
+        "foundation",
+        "project",
+        "packages",
+        "engine"
+      ],
+      "checks": [
+        "legacy-models",
+        "windows"
+      ]
+    },
+    {
+      "id": "engine",
+      "purpose": "Private Godot installation, process invocation, validation, export and launch.",
+      "owns": [
+        "src-tauri/src/core/godot.rs",
+        "src-tauri/src/core/runtime.rs",
+        "src-tauri/src/core/play.rs"
+      ],
+      "card": "docs/modules/engine.md",
+      "depends_on": [
+        "foundation",
+        "project"
+      ],
+      "checks": [
+        "legacy-models",
+        "windows"
+      ]
+    },
+    {
+      "id": "shell",
+      "purpose": "Desktop controls, command dispatch, initialization and displayed health.",
+      "owns": [
+        "web/*",
+        "src-tauri/src/lib.rs",
+        "src-tauri/src/main.rs",
+        "src-tauri/src/core/pipeline.rs",
+        "src-tauri/src/core/status.rs",
+        "src-tauri/src/core/mod.rs"
+      ],
+      "card": "docs/modules/shell.md",
+      "depends_on": [
+        "foundation",
+        "project",
+        "packages",
+        "transactions",
+        "engine"
+      ],
+      "checks": [
+        "javascript",
+        "windows"
+      ]
+    },
+    {
+      "id": "delivery",
+      "purpose": "Build configuration, fixtures, installer delivery and Windows integration proof.",
+      "owns": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "rust-toolchain.toml",
+        "src-tauri/Cargo.toml",
+        "src-tauri/build.rs",
+        "src-tauri/tauri.conf.json",
+        "src-tauri/capabilities/*",
+        "src-tauri/icons/*",
+        "src-tauri/resources/*",
+        ".github/workflows/build-windows.yml",
+        "tools/build_windows.ps1",
+        "tools/make_fixture_update.py",
+        "tools/validate_repo.py",
+        "tools/test_*_model.py",
+        "tools/test_pipeline_contract.py",
+        "fixtures/*",
+        "src-tauri/src/bin/bridge_pipeline_smoke.rs"
+      ],
+      "card": "docs/modules/delivery.md",
+      "depends_on": [
+        "shell",
+        "engine",
+        "transactions"
+      ],
+      "checks": [
+        "legacy-models",
+        "windows"
+      ]
+    },
+    {
+      "id": "memory",
+      "purpose": "Task routing, project decisions, evidence checkpoints and scoped source handoffs.",
+      "owns": [
+        "AGENTS.md",
+        "README.md",
+        "BRIDGE_CONTROL.md",
+        "CHANGES*",
+        ".gitignore",
+        ".gitattributes",
+        "project_control/*",
+        "docs/*",
+        "tools/project_memory.py",
+        "tools/memory/*",
+        ".github/workflows/project-memory.yml",
+        ".github/PULL_REQUEST_TEMPLATE.md"
+      ],
+      "card": "docs/modules/memory.md",
+      "depends_on": [],
+      "checks": [
+        "memory"
+      ]
+    }
+  ]
+}

@@ -4,3 +4,9 @@ Thumbs.db
 *.log
 /.idea/
 /.vscode/
+
+/target/
+/src-tauri/gen/
+**/__pycache__/
+*.pyc
+/.memory-output/

@@ -1,5 +1,9 @@
 # CrimeSim Bridge architecture
 
+> Project Armor I: begin at `AGENTS.md` and `project_control/CURRENT.json`.
+> This document describes design intent and historical implementation, not blanket proof of safety.
+> Open gaps and acceptance criteria are tracked in `project_control/BACKLOG.json`.
+
 ## Principle
 
 The Bridge is a transaction coordinator between a chat-produced change package and a normal Godot project. Godot does not apply updates. The Bridge applies a candidate update to staging; Godot only imports, validates, tests and exports that candidate.

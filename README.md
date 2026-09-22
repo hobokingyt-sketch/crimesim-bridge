@@ -1,5 +1,9 @@
 # CrimeSim Bridge v0.25 — First Real Windows Pipeline
 
+> Project Armor I: begin at `AGENTS.md` and `project_control/CURRENT.json`.
+> This document describes design intent and historical implementation, not blanket proof of safety.
+> Open gaps and acceptance criteria are tracked in `project_control/BACKLOG.json`.
+
 CrimeSim Bridge is a Windows-first transactional pipeline for developing a normal multi-file Godot project through ChatGPT without requiring the user to operate the Godot editor.
 
 ## Intended user loop
@@ -14,7 +18,7 @@ CrimeSim Bridge is a Windows-first transactional pipeline for developing a norma
 
 The ZIP is transport only. The game remains a normal structured Godot project.
 
-## What v0.25 proves
+## What the v0.25 integration harness exercises
 
 v0.25 adds a Windows CI end-to-end harness that uses the actual Godot 4.7.2 runtime and export templates. The runner:
 

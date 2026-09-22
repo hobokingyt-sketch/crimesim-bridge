@@ -1,0 +1,30 @@
+name: Project Memory
+on:
+  push:
+    branches: [main, "armor/**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: memory-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  memory:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check repository memory structure
+        run: python tools/project_memory.py check
+      - name: Exercise memory and handoff behavior
+        run: python -m unittest discover -s tools/memory/tests -v
+      - name: Check frontend syntax
+        run: node --check web/app.js

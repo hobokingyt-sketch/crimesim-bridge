@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "checkpoint": "2026-09-22",
+  "task_id": "ARMOR-1",
+  "summary": "Repository memory, scoped handoffs, ownership checks and an evidence-based safety backlog. No game features or Rust transaction changes in this pass.",
+  "audit_base_commit": "56589ae4858da3809de2ef637fda4b72d17ebdc4",
+  "observations": [
+    {
+      "commit": "56589ae4858da3809de2ef637fda4b72d17ebdc4",
+      "run_id": 35690061931,
+      "result": "cancelled_after_partial_success",
+      "passed": [
+        "Windows compile check",
+        "real Godot update/rollback/reapply E2E"
+      ],
+      "not_yet_verified": [
+        "installer delivery",
+        "installed desktop UX",
+        "crash injection across every mutation phase"
+      ],
+      "note": "Job completed cancelled at 2026-09-22T05:41:32Z during NSIS build. Compile and real E2E passed; installer verification/upload skipped. Recheck Actions for newer runs."
+    }
+  ],
+  "next_task_ids": [
+    "SAFE-1",
+    "BUILD-1",
+    "PACK-1"
+  ],
+  "limits": [
+    "Memory checks do not prove runtime safety or correct game design.",
+    "Focused Bridge source packs are developer tooling; the desktop Create Chat Pack still exports its managed game workspace.",
+    "No production game simulation is implemented here."
+  ],
+  "handoff": "Read AGENTS.md and the module for the next task. Do not restart the project or use an old source ZIP as the current repository.",
+  "local_verification": {
+    "result": "passed",
+    "tests": 31,
+    "command": "python -m unittest discover -s tools/memory/tests -v",
+    "platform": "Linux / Python 3.13",
+    "scope": "Repository memory and handoff tooling, not Windows runtime safety"
+  }
+}
