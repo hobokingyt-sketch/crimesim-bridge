@@ -20,11 +20,11 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.98.1
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: ". -> target"
       - name: Exercise production worker watchdog and process trees
-        run: cargo test -p bridge-worker --features fixture-processes -- --nocapture
+        run: cargo test --locked -p bridge-worker --features fixture-processes -- --nocapture
       - name: Check worker gateway and recovery ordering
         run: python tools/test_worker_wiring.py

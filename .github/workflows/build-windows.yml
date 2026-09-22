@@ -23,12 +23,16 @@ env:
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
       - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.98.1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
 
       - name: Cache Rust build
         uses: Swatinem/rust-cache@v2
@@ -39,6 +43,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
           $version = $env:GODOT_VERSION
           $runtime = "src-tauri/resources/godot"
           $temp = Join-Path $env:RUNNER_TEMP "crimesim-godot"
@@ -96,6 +101,8 @@ jobs:
       - name: Validate repository models
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
           python tools/validate_repo.py
           python tools/test_transaction_model.py
           python tools/test_crash_recovery_model.py
@@ -103,9 +110,10 @@ jobs:
           python tools/test_pipeline_contract.py
           node --check web/app.js
           python tools/test_worker_wiring.py
+          python -m unittest discover -s tools/delivery_tests -v
 
       - name: Compile-check Rust workspace
-        run: cargo check --workspace
+        run: cargo check --workspace --locked
 
       - name: Run real Godot end-to-end Bridge smoke
         shell: pwsh
@@ -115,54 +123,95 @@ jobs:
           CRIMESIM_BRIDGE_RUNTIME_SOURCE: ${{ github.workspace }}\src-tauri\resources\godot
         run: |
           $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
           New-Item -ItemType Directory -Force -Path $env:CRIMESIM_BRIDGE_DOWNLOADS | Out-Null
-          cargo run --bin bridge_pipeline_smoke
+          cargo run --locked --bin bridge_pipeline_smoke
 
-      - name: Upload end-to-end diagnostics
+      - name: Run production safety suites
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          cargo test --locked -p bridge-safety --features fault-injection
+          cargo test --locked -p bridge-worker --features fixture-processes
+
+      - name: Install pinned prebuilt Tauri CLI
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $tool = Join-Path $env:RUNNER_TEMP 'tauri-cli-2.11.4'
+          New-Item -ItemType Directory -Path $tool -Force | Out-Null
+          $archive = Join-Path $tool 'cli.zip'
+          Invoke-WebRequest 'https://github.com/tauri-apps/tauri/releases/download/tauri-cli-v2.11.4/cargo-tauri-x86_64-pc-windows-msvc.zip' -OutFile $archive
+          $hash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne '0743e30a661a35d63339b24cf63828f97ba5389a1d7f13b368a542794dd0a3f3') { throw 'Tauri CLI archive hash mismatch' }
+          Expand-Archive $archive (Join-Path $tool 'bin') -Force
+          $cli = @(Get-ChildItem (Join-Path $tool 'bin') -Filter cargo-tauri.exe -Recurse)
+          if ($cli.Count -ne 1) { throw 'Expected exactly one Tauri CLI executable' }
+          $cli[0].DirectoryName | Out-File $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Record exact build provenance
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $meta = cargo metadata --format-version 1 --no-deps --locked | ConvertFrom-Json
+          $meta | ConvertTo-Json -Depth 30 | Set-Content "$env:RUNNER_TEMP/cargo-metadata.json" -Encoding utf8
+          $cliVersion = cargo tauri --version
+          if ($cliVersion -notmatch '2\.11\.4') { throw "Tauri CLI version mismatch: $cliVersion" }
+          @{
+            schema = 1
+            source_commit = (git rev-parse HEAD).Trim()
+            source_tree = (git rev-parse 'HEAD^{tree}').Trim()
+            cargo_lock_sha256 = (Get-FileHash Cargo.lock -Algorithm SHA256).Hash.ToLowerInvariant()
+            godot_version = $env:GODOT_VERSION
+            rust_version = (rustc --version)
+            tauri_cli_version = $cliVersion
+          } | ConvertTo-Json | Set-Content src-tauri/resources/build_info.json -Encoding utf8
+          $bundle = Join-Path $meta.target_directory 'release/bundle/nsis'
+          if (Test-Path $bundle) { Remove-Item $bundle -Recurse -Force }
+
+      - name: Build NSIS installer
+        run: cargo tauri build --bundles nsis -- --locked
+
+      - name: Clean-install and exercise actual desktop application
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $installer = python tools/delivery.py discover --metadata "$env:RUNNER_TEMP/cargo-metadata.json"
+          ./tools/test_installer.ps1 -InstallerPath $installer -EvidenceDirectory "$env:RUNNER_TEMP/installed-evidence"
+
+      - name: Verify installer and write release manifest
+        id: delivery
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          python tools/delivery.py manifest --metadata "$env:RUNNER_TEMP/cargo-metadata.json" --report "$env:RUNNER_TEMP/installed-evidence/install_check.json" --provenance src-tauri/resources/build_info.json --lock Cargo.lock --output "$env:RUNNER_TEMP/verified-installer"
+          if (-not (Test-Path "$env:RUNNER_TEMP/verified-installer/release_manifest.json")) { throw "Release manifest missing" }
+          "directory=$env:RUNNER_TEMP/verified-installer" | Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Upload verified Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: CrimeSim-Bridge-Windows-BUILD-1-${{ github.run_number }}
+          path: ${{ steps.delivery.outputs.directory }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload end-to-end and installed-test diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CrimeSim-Bridge-E2E-Diagnostics
+          name: CrimeSim-Bridge-BUILD-1-Evidence-${{ github.run_number }}
           path: |
             ${{ runner.temp }}/crimesim-bridge-e2e/logs/**
             ${{ runner.temp }}/crimesim-bridge-e2e/state/**
-            ${{ runner.temp }}/crimesim-bridge-e2e/builds/current/**
+            ${{ runner.temp }}/installed-evidence/**
+            ${{ runner.temp }}/cargo-metadata.json
+            src-tauri/resources/build_info.json
+            Cargo.lock
           if-no-files-found: warn
-          retention-days: 14
-
-      - name: Install Tauri CLI
-        if: github.event_name != 'pull_request'
-        run: cargo install tauri-cli --version "^2.0" --locked
-
-      - name: Build NSIS installer
-        if: github.event_name != 'pull_request'
-        run: cargo tauri build
-
-      - name: Verify installer and write release manifest
-        if: github.event_name != 'pull_request'
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = "Stop"
-          $installer = Get-ChildItem "src-tauri/target/release/bundle/nsis" -Filter "*.exe" | Select-Object -First 1
-          if (-not $installer) { throw "NSIS installer was not produced" }
-          $hash = (Get-FileHash $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
-          $manifest = @{
-            bridge_version = "0.2.5"
-            godot_version = $env:GODOT_VERSION
-            installer = $installer.Name
-            sha256 = $hash
-            e2e_pipeline = "passed"
-          }
-          $manifest | ConvertTo-Json -Depth 4 | Set-Content "src-tauri/target/release/bundle/nsis/release_manifest.json" -Encoding UTF8
-          Write-Host "Installer: $($installer.FullName)"
-          Write-Host "SHA256: $hash"
-
-      - name: Upload Windows installer
-        if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: CrimeSim-Bridge-Windows-v0.2.5
-          path: |
-            src-tauri/target/release/bundle/nsis/*.exe
-            src-tauri/target/release/bundle/nsis/release_manifest.json
-          if-no-files-found: error
+          retention-days: 30

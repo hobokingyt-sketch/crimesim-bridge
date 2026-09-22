@@ -73,6 +73,18 @@
       "reason": "Engine iteration limits cannot recover a hung process; closing a console launcher is insufficient when its child keeps running. Recovery must confirm worker quiescence before modifying staging.",
       "tradeoff": "Windows job APIs require Windows 10+; Linux support is CI/normal process-group supervision, not persistent parent-death containment. This is trusted-code lifecycle control, not a security sandbox.",
       "supersedes": null
+    },
+    {
+      "id": "ADR-007",
+      "status": "accepted",
+      "modules": [
+        "delivery",
+        "shell"
+      ],
+      "decision": "Installer acceptance runs the actual packaged desktop app with bundled resources in a new isolated workspace before publishing its artifact.",
+      "reason": "A source-tree E2E cannot establish correct resource packaging, native frontend IPC, install paths or uninstall behavior. Cargo metadata and exact provenance bind evidence to the delivered installer.",
+      "tradeoff": "PR checks take longer but produce a tested development artifact. The opt-in probe is not exhaustive user interaction, a pristine Windows image or code signing.",
+      "supersedes": null
     }
   ]
 }

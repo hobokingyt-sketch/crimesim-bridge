@@ -1,4 +1,5 @@
 pub mod core;
+mod install_check;
 
 use core::{package, pipeline, play, runtime, status, transaction, types::{ActionResult, BridgeStatus}, update};
 
@@ -101,6 +102,10 @@ async fn play_current() -> Result<ActionResult, String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    if let Err(error) = install_check::configure() {
+        eprintln!("{error}");
+        std::process::exit(2);
+    }
     tauri::Builder::default()
         .setup(|app| {
             match transaction::recover_incomplete() {
@@ -114,6 +119,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            install_check::frontend_ready,
             get_status,
             initialize_pipeline,
             bootstrap_demo_project,

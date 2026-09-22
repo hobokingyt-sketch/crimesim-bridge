@@ -1,29 +1,31 @@
 {
   "schema": 1,
   "checkpoint": "2026-09-22",
-  "task_id": "SAFE-2",
-  "summary": "Project Armor III watchdog accepted: current-code worker, recovery, memory and real Windows Godot E2E workflows completed successfully. This checkpoint update changes documentation only, not runtime source.",
-  "audit_base_commit": "6cbf251e3a7029cff99b3403da4cde541168bbd7",
+  "task_id": "BUILD-1",
+  "summary": "Installer delivery implementation: locked source, metadata-based discovery, pinned prebuilt CLI and actual installed frontend/bundled-Godot acceptance. Native Windows verification is pending.",
+  "audit_base_commit": "7e4e25a14e59a9c633098a6415a2c4a2cfae76c3",
   "observations": [
     {
       "commit": "ace49dff4395b6388a71e257717127fd6fcfe3d1",
       "run_id": 35700910813,
       "result": "passed",
       "passed": [
-        "Windows full workspace compile",
-        "Real Godot end-to-end Bridge smoke",
-        "Repository and caller-routing checks"
+        "Prior Windows compile and real Godot E2E"
       ],
-      "not_yet_verified": ["installer delivery", "installed Windows desktop UX"],
-      "note": "Worker Watchdog 35700910783, Recovery Safety 35700910770 and Project Memory 35700910769 also completed successfully on this same code head. Installer steps were deliberately skipped for PR validation."
+      "not_yet_verified": [
+        "BUILD-1 installer and installed-app probe"
+      ],
+      "note": "SAFE-1 and SAFE-2 are merged. These earlier checks are not evidence for new BUILD-1 code."
     }
   ],
-  "next_task_ids": ["BUILD-1", "PACK-1", "SAFE-3"],
-  "limits": [
-    "No sandbox, disk power-loss certification or protection against deliberately escaped hostile processes.",
-    "Godot version/import/tests/export/smoke workers are bounded. Normal gameplay remains untimed.",
-    "Linux process groups support tests and normal deadlines, not recovery of a persisted Windows job.",
-    "Cancellation is a tested worker API, not a desktop Cancel button. No installer delivered by SAFE-2."
+  "next_task_ids": [
+    "PACK-1",
+    "SAFE-3"
   ],
-  "handoff": "Read current HEAD and AGENTS.md. SAFE-1 and SAFE-2 are accepted; check PR #3 merge status rather than rebuilding them. Next task BUILD-1: use the delivery module, fix installer output discovery from cargo metadata, validate the artifact and clean-install behavior. Keep PACK-1 focused game-context handoffs distinct from Bridge development. Never replace current source with the earlier partial watchdog trees or old ZIPs."
+  "limits": [
+    "No delivered installer until the current native acceptance and upload pass.",
+    "Fresh hosted Windows installation and isolated data canary are not exhaustive consumer-PC or save-schema tests.",
+    "Source backups are not installers. No code-signing certificate or self-update."
+  ],
+  "handoff": "Read delivery module. Finish BUILD-1 current-code checks and record artifact identity; do not repeat watchdog/recovery passes or overwrite later commits. Then PACK-1."
 }

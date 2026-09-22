@@ -20,11 +20,11 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@1.98.1
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: ". -> target"
       - name: Kill and recover actual coordinator processes
-        run: cargo test -p bridge-safety --features fault-injection -- --nocapture
+        run: cargo test --locked -p bridge-safety --features fault-injection -- --nocapture
       - name: Check desktop callers use the coordinator
         run: python tools/test_safety_wiring.py
