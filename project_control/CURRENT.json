@@ -2,35 +2,28 @@
   "schema": 1,
   "checkpoint": "2026-09-22",
   "task_id": "SAFE-2",
-  "summary": "Project Armor III adds an external Godot worker watchdog and bounded output. Armor II has passed its final checks and is merged. New Rust worker behavior and integrated E2E await current-head CI.",
+  "summary": "Project Armor III watchdog accepted: current-code worker, recovery, memory and real Windows Godot E2E workflows completed successfully. This checkpoint update changes documentation only, not runtime source.",
   "audit_base_commit": "6cbf251e3a7029cff99b3403da4cde541168bbd7",
   "observations": [
     {
-      "commit": "ef038a893297dfb06b5ba0162da7f5fe28fd363f",
-      "run_id": 35696987625,
+      "commit": "ace49dff4395b6388a71e257717127fd6fcfe3d1",
+      "run_id": 35700910813,
       "result": "passed",
       "passed": [
-        "Armor II Windows compile and expanded real Godot E2E",
-        "Armor II recovery and memory workflows also passed"
+        "Windows full workspace compile",
+        "Real Godot end-to-end Bridge smoke",
+        "Repository and caller-routing checks"
       ],
-      "not_yet_verified": [
-        "New SAFE-2 worker implementation",
-        "installer delivery",
-        "installed desktop UX"
-      ],
-      "note": "Armor II merged via PR #2 as 6cbf251. New worker tests must pass before SAFE-2 acceptance."
+      "not_yet_verified": ["installer delivery", "installed Windows desktop UX"],
+      "note": "Worker Watchdog 35700910783, Recovery Safety 35700910770 and Project Memory 35700910769 also completed successfully on this same code head. Installer steps were deliberately skipped for PR validation."
     }
   ],
-  "next_task_ids": [
-    "BUILD-1",
-    "PACK-1",
-    "SAFE-3"
-  ],
+  "next_task_ids": ["BUILD-1", "PACK-1", "SAFE-3"],
   "limits": [
     "No sandbox, disk power-loss certification or protection against deliberately escaped hostile processes.",
-    "Windows watchdog covers engine version/import/tests/export/smoke only. Normal gameplay remains untimed.",
+    "Godot version/import/tests/export/smoke workers are bounded. Normal gameplay remains untimed.",
     "Linux process groups support tests and normal deadlines, not recovery of a persisted Windows job.",
-    "Cancellation is a tested worker API, not a desktop Cancel button. No installer delivered by this pass."
+    "Cancellation is a tested worker API, not a desktop Cancel button. No installer delivered by SAFE-2."
   ],
-  "handoff": "Inspect SAFE-2 branch/PR and current-head Worker Watchdog, Recovery Safety, Project Memory and Windows compile/Godot E2E results. Do not repeat implementation or merge based on prior-head results. Read engine module first."
+  "handoff": "Read current HEAD and AGENTS.md. SAFE-1 and SAFE-2 are accepted; check PR #3 merge status rather than rebuilding them. Next task BUILD-1: use the delivery module, fix installer output discovery from cargo metadata, validate the artifact and clean-install behavior. Keep PACK-1 focused game-context handoffs distinct from Bridge development. Never replace current source with the earlier partial watchdog trees or old ZIPs."
 }
