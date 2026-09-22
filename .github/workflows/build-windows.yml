@@ -36,7 +36,7 @@ jobs:
           $runtime = "src-tauri/resources/godot"
           $temp = Join-Path $env:RUNNER_TEMP "crimesim-godot"
           New-Item -ItemType Directory -Force -Path $runtime | Out-Null
-          Remove-Item -Force (Join-Path $runtime "godot.exe") -ErrorAction SilentlyContinue
+          Get-ChildItem $runtime -Filter "Godot*.exe" -ErrorAction SilentlyContinue | Remove-Item -Force
           Remove-Item -Recurse -Force (Join-Path $runtime "editor_data") -ErrorAction SilentlyContinue
           Remove-Item -Force (Join-Path $runtime "runtime_manifest.json") -ErrorAction SilentlyContinue
           Remove-Item -Recurse -Force $temp -ErrorAction SilentlyContinue
@@ -52,9 +52,11 @@ jobs:
           Expand-Archive -Path $godotZip -DestinationPath (Join-Path $temp "godot") -Force
           Expand-Archive -Path $templatesZip -DestinationPath (Join-Path $temp "templates") -Force
 
-          $godotExe = Get-ChildItem (Join-Path $temp "godot") -Filter "Godot*_win64_console.exe" -Recurse | Select-Object -First 1
-          if (-not $godotExe) { throw "Godot console executable not found in official archive" }
-          Copy-Item $godotExe.FullName (Join-Path $runtime "godot.exe") -Force
+          $godotGui = Get-ChildItem (Join-Path $temp "godot") -Filter "Godot*_win64.exe" -Recurse | Select-Object -First 1
+          $godotConsole = Get-ChildItem (Join-Path $temp "godot") -Filter "Godot*_win64_console.exe" -Recurse | Select-Object -First 1
+          if (-not $godotGui -or -not $godotConsole) { throw "Godot Windows executable pair not found in official archive" }
+          Copy-Item $godotGui.FullName (Join-Path $runtime $godotGui.Name) -Force
+          Copy-Item $godotConsole.FullName (Join-Path $runtime $godotConsole.Name) -Force
           New-Item -ItemType File -Force -Path (Join-Path $runtime "_sc_") | Out-Null
 
           $templateDest = Join-Path $runtime "editor_data/export_templates/${version}.stable"
@@ -66,7 +68,8 @@ jobs:
           Copy-Item $releaseTemplate.FullName (Join-Path $templateDest "windows_release_x86_64.exe") -Force
 
           $manifestFiles = @(
-            "godot.exe",
+            $godotGui.Name,
+            $godotConsole.Name,
             "GODOT_LICENSE.txt",
             "README.txt",
             "editor_data/export_templates/${version}.stable/windows_debug_x86_64.exe",
@@ -81,7 +84,7 @@ jobs:
             ConvertTo-Json -Depth 5 |
             Set-Content -Path (Join-Path $runtime "runtime_manifest.json") -Encoding UTF8
 
-          $reported = & (Join-Path $runtime "godot.exe") --version
+          $reported = & (Join-Path $runtime $godotConsole.Name) --version
           Write-Host "Bundled Godot reports: $reported"
           if (-not ($reported -like "${version}*")) { throw "Downloaded Godot version mismatch: $reported" }
 
