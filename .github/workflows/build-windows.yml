@@ -110,7 +110,7 @@ jobs:
 
           @'
           [preset.0]
-          name="Windows Desktop"
+          name="Windows"
           platform="Windows Desktop"
           runnable=true
           dedicated_server=false
@@ -141,7 +141,7 @@ jobs:
           Invoke-GodotChecked -FilePath $env:GODOT_EXE -Arguments @("--headless", "--path", $project, "--import", "--quit") -Label "import"
 
           $smokeExe = Join-Path $build "CrimeSimSmoke.exe"
-          Invoke-GodotChecked -FilePath $env:GODOT_EXE -Arguments @("--headless", "--path", $project, "--export-debug", "Windows Desktop", $smokeExe) -Label "export"
+          Invoke-GodotChecked -FilePath $env:GODOT_EXE -Arguments @("--headless", "--path", $project, "--export-debug", "Windows", $smokeExe) -Label "export"
           if (-not (Test-Path $smokeExe)) { throw "Exported smoke executable missing" }
 
           Invoke-GodotChecked -FilePath $smokeExe -Arguments @("--headless", "--path", $project) -Label "game-smoke"
